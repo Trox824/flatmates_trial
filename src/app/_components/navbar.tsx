@@ -6,7 +6,7 @@ export default function Navbar() {
   return (
     <>
       <div className="bg-gray-700 text-white text-center py-3 text-[0.9375rem]">
-        Australia's biggest share accommodation website{" "}
+        Australia&apos;s biggest share accommodation website{" "}
         <Link href="/about" className="underline">
           Learn more
         </Link>
