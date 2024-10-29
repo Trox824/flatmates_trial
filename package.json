@@ -10,7 +10,7 @@
     "db:push": "prisma db push",
     "db:studio": "prisma studio",
     "dev": "next dev",
-    "postinstall": "prisma generate",
+    "postinstall": "npm ci --omit=dev && prisma generate",
     "lint": "next lint",
     "start": "next start"
   },
@@ -27,7 +27,12 @@
     "react-dom": "^18.3.1",
     "server-only": "^0.0.1",
     "superjson": "^2.2.1",
-    "zod": "^3.23.3"
+    "zod": "^3.23.3",
+    "inflight": "latest",
+    "@humanwhocodes/object-schema": "@eslint/object-schema",
+    "rimraf": "^4.0.0",
+    "glob": "^9.0.0",
+    "eslint": "^8.57.2"
   },
   "devDependencies": {
     "@types/eslint": "^8.56.10",
