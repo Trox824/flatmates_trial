@@ -46,6 +46,10 @@ if [ "$DB_PASSWORD" = "password" ]; then
   sed -i -e "s#:password@#:$DB_PASSWORD@#" .env
 fi
 
+echo "Installing required dependencies..."
+npm install --save-dev @types/jest
+npm install sharp
+
 docker run -d \
   --name $DB_CONTAINER_NAME \
   -e POSTGRES_USER="postgres" \
