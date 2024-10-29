@@ -3,7 +3,6 @@ import { type FC } from "react";
 import housemate from "../../../../public/images/housemate.png";
 
 interface ListingCardProps {
-  imageUrl: string;
   price: number;
   name: string;
   age?: number;
@@ -13,7 +12,6 @@ interface ListingCardProps {
 }
 
 const ListingCard: FC<ListingCardProps> = ({
-  imageUrl,
   price,
   name,
   age,
