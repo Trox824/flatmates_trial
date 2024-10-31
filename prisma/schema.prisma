@@ -16,3 +16,129 @@ model Post {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model Listing {
+  id        String   @id @default(cuid())
+  type      String   
+  heading   String   
+  price     Int
+  billsIncluded Boolean @default(false)
+  
+  address   String? 
+  secondaryContent String? 
+  subheading String? 
+  description String? 
+  availableFrom DateTime?
+  
+  noBeds Int @default(0)
+  noBathrooms Int @default(0)
+  noFlatmates Int @default(0)
+  propertyFeatures String[] @default([])
+  accpetingTags String[] @default([])
+  inspectAvailable Boolean @default(false)
+  weeklyRent Int
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PersonListing {
+  id        String   @id @default(cuid())
+  name      String
+  budget    Int
+  location  String?
+  image     String?
+  stayLength     Int
+  moveInDate     DateTime
+  description    String?
+  verification   String?
+  tags           String[]
+  preferences    String[]
+  oneLiner       String?
+  preferedLocation String?
+  furnishedRoom    String?
+  maxNoFlatmates   String?
+  parking          String?
+  bathRoom         String?
+  internet         String?
+  preferedAccommodationType String[]
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model Room {
+  id        String   @id @default(cuid())
+  name      String
+  type      String
+  location  String?
+  oneLiner  String?
+  description String?
+  aboutFlatmate String?
+  noBeds Int
+  noBathrooms Int
+  noFlatmates Int
+  propertyFeatures String[]
+  accpetingTags    String[]
+  inspectAvailable Boolean
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  weeklyRent Int
+  bond       Int?
+  roomType   String?
+  stayLength Int?
+  furnished String?
+  internet String?
+  parking String?
+  bathRoom String?
+  bills String?
+  acceptedPeople String?
+}
+
+model FeatureListing {
+  name      String   @id
+  svgLink   String
+}
+
+model Account {
+    id                String  @id @default(cuid())
+    userId            String
+    type              String
+    provider          String
+    providerAccountId String
+    refresh_token     String? @db.Text
+    access_token      String? @db.Text
+    expires_at        Int?
+    token_type        String?
+    scope             String?
+    id_token          String? @db.Text
+    session_state     String?
+    user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+    @@unique([provider, providerAccountId])
+}
+
+model Session {
+    id           String   @id @default(cuid())
+    sessionToken String   @unique
+    userId       String
+    expires      DateTime
+    user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model User {
+    id            String    @id @default(cuid())
+    name          String?
+    email         String?   @unique
+    emailVerified DateTime?
+    image         String?
+    accounts      Account[]
+    sessions      Session[]
+}
+
+model VerificationToken {
+    identifier String
+    token      String   @unique
+    expires    DateTime
+
+    @@unique([identifier, token])
+}
