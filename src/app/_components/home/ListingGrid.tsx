@@ -52,7 +52,7 @@ const ListingGrid = () => {
 
     const observer = new IntersectionObserver(
       (entries: IntersectionObserverEntry[]) => {
-        if (entries.length > 0 && entries[0].isIntersecting && !loading) {
+        if (entries.length > 0 && entries[0]?.isIntersecting && !loading) {
           fetchListings();
         }
       },
