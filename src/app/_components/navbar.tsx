@@ -75,7 +75,9 @@ export default function Navbar() {
             </Link>
             {session ? (
               <button
-                onClick={() => signOut()}
+                onClick={async () => {
+                  await signOut();
+                }}
                 className="font-semibold text-gray-800 text-sm"
               >
                 Sign out
@@ -128,8 +130,8 @@ export default function Navbar() {
             </Link>
             {session ? (
               <button
-                onClick={() => {
-                  signOut();
+                onClick={async () => {
+                  await signOut();
                   setIsMobileMenuOpen(false);
                 }}
                 className="block px-4 py-2 text-gray-600 font-semibold hover:bg-gray-100 rounded-md"

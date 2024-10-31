@@ -1,8 +1,9 @@
 import axios from 'axios';
-import { PrismaClient, Listing } from '@prisma/client';
+import type { Listing } from '@prisma/client';
 import * as cheerio from 'cheerio';
 import fs from 'fs/promises';
 import pLimit from 'p-limit';
+import { PrismaClient } from '@prisma/client';
 
 const prisma = new PrismaClient();
 
@@ -26,7 +27,7 @@ const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 async function fetchWithScrapfly(url: string): Promise<string> {
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     try {
-      const response = await axios.get(SCRAPFLY_ENDPOINT, {
+      const response = await axios.get<ScrapflyResponse>(SCRAPFLY_ENDPOINT, {
         params: {
           url,
           render_js: true,
@@ -59,11 +60,12 @@ async function fetchWithScrapfly(url: string): Promise<string> {
 
       return response.data.result.content;
 
-    } catch (error: any) {
+    } catch (error: unknown) {
+      const err = error as Error & { response?: { data: unknown; status: number } };
       console.error(`Attempt ${attempt}/${MAX_RETRIES} failed:`, {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status
       });
 
       if (attempt < MAX_RETRIES) {
@@ -122,26 +124,27 @@ export async function scrapeListings() {
               const $element = $(element);
 
               // Get basic listing info
-              const href = $element.find('.styles__tileLink___1JJi8').attr('href') || '';
+              const href = $element.find('.styles__tileLink___1JJi8')?.attr('href') ?? '';
+              // Replace lines like this:
               const id = href.replace('/', '');
               const type = href.startsWith('/F') ? 'person' : 'room';
 
               // Get common fields
               const price = $element.find('.styles__price___3Jhqs').text();
-              const priceNumber = parseInt(price.match(/\$(\d+)/)?.[1] || '0');
+              const priceNumber = RegExp(/\$(\d+)/).exec(price)?.[1] ?? '0';
               const billsIncluded = price.toLowerCase().includes('inc. bills');
 
               // Get type-specific fields
               let heading, address, secondaryContent, subheading, description;
 
               if (type === 'person') {
-                heading = $element.find('.styles__heading___3Jsfc').text();
-                subheading = $element.find('.styles__subheading___288j8').text();
-                description = $element.find('.styles__description___2439E').text();
+                heading = $element.find('.styles__heading___3Jsfc').text() ?? '';
+                subheading = $element.find('.styles__subheading___288j8').text() ?? '';
+                description = $element.find('.styles__description___2439E').text() ?? '';
               } else {
-                heading = $element.find('.styles__roomInfo___1BEdy').text();
-                address = $element.find('.styles__address___28Scu').text();
-                secondaryContent = $element.find('.styles__secondaryContent___r-YXk').text();
+                heading = $element.find('.styles__roomInfo___1BEdy').text() ?? '';
+                address = $element.find('.styles__address___28Scu').text() ?? null;
+                secondaryContent = $element.find('.styles__secondaryContent___r-YXk').text() ?? null;
               }
 
               // Get availability date
@@ -151,8 +154,8 @@ export async function scrapeListings() {
               if (availableText.toLowerCase().includes('now')) {
                 availableFrom = new Date();
               } else {
-                const dateMatch = availableText.match(/Available (\d{1,2} \w+ \d{4})/);
-                if (dateMatch && dateMatch[1]) {
+                const dateMatch = RegExp(/Available (\d{1,2} \w+ \d{4})/).exec(availableText);
+                if (dateMatch?.[1]) {
                   const parsedDate = new Date(dateMatch[1]);
                   if (!isNaN(parsedDate.getTime())) {
                     availableFrom = parsedDate;
@@ -170,12 +173,12 @@ export async function scrapeListings() {
                     id,
                     type,
                     heading: heading || '',
-                    price: priceNumber,
+                    price: parseInt(priceNumber),
                     billsIncluded,
-                    address: address || null,
-                    secondaryContent: secondaryContent || null,
-                    subheading: subheading || null,
-                    description: description || null,
+                    address,
+                    secondaryContent,
+                    subheading,
+                    description,
                     availableFrom,
                     noBeds: 0,
                     noBathrooms: 0,
@@ -183,7 +186,7 @@ export async function scrapeListings() {
                     propertyFeatures: [],
                     accpetingTags: [],
                     inspectAvailable: false,
-                    weeklyRent: priceNumber,
+                    weeklyRent: parseInt(priceNumber),
                   },
                 });
 
@@ -227,9 +230,17 @@ export async function scrapeListings() {
   }
 }
 
-async function testScrapflyConfig() {
+interface ScrapflyResponse {
+  result?: {
+    content: string;
+  };
+}
+
+// Optionally remove or use the function below
+/*
+async function testScrapflyConfig(): Promise<ScrapflyAccountResponse> {
   try {
-    const response = await axios.get('https://api.scrapfly.io/account', {
+    const response = await axios.get<ScrapflyAccountResponse>('https://api.scrapfly.io/account', {
       headers: {
         'Authorization': `Bearer ${SCRAPFLY_API_KEY}`,
         'Accept': 'application/json',
@@ -237,11 +248,14 @@ async function testScrapflyConfig() {
     });
     console.log('Scrapfly account status:', response.data);
     return response.data;
-  } catch (error: any) {
-    console.error('Error checking Scrapfly account:', error.response?.data || error.message);
+  } catch (error: unknown) {
+    const err = error as Error & { response?: { data: unknown } };
+    console.error('Error checking Scrapfly account:', err.response?.data ?? err.message);
     throw error;
   }
 }
 
 // Call the test function
 // await testScrapflyConfig();
+*/
+

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef, useCallback } from "react";
-import ListingCard, { RoomListingProps, PersonListingProps } from "./ListingCard";
+import ListingCard from "./ListingCard";
 
 interface Listing {
   id: string;
@@ -11,7 +11,12 @@ interface Listing {
   address?: string;
   secondaryContent?: string;
   description?: string;
+  subheading?: string;
   availableFrom?: Date;
+}
+
+interface ListingsResponse {
+  listings: Listing[];
 }
 
 const ListingGrid = () => {
@@ -30,7 +35,7 @@ const ListingGrid = () => {
       if (!response.ok) {
         throw new Error('Failed to fetch listings');
       }
-      const data = await response.json();
+      const data = (await response.json()) as ListingsResponse;
       
       if (!data.listings || data.listings.length === 0) {
         setHasMore(false);
@@ -53,7 +58,7 @@ const ListingGrid = () => {
     const observer = new IntersectionObserver(
       (entries: IntersectionObserverEntry[]) => {
         if (entries.length > 0 && entries[0]?.isIntersecting && !loading) {
-          fetchListings();
+          void fetchListings();
         }
       },
       {

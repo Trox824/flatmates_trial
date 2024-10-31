@@ -1,5 +1,5 @@
+import type { FC } from "react";
 import Image from "next/image";
-import { FC } from "react";
 import housemate from "../../../../public/images/housemate.png";
 
 interface BaseListingProps {
@@ -78,16 +78,16 @@ const ListingCard: FC<ListingCardProps> = (props) => {
             props.address && <span>{props.address}</span>
           ) : (
             props.subheading && (
-              <div className="flex items-center gap-2 text-sm text-gray-600 ">
+              <div className="flex items-center gap-2 text-sm text-gray-600">
                 {props.subheading.split('•').map((item, index, array) => (
-                  <>
-                    <span key={index} className="p-1">{item.trim()}</span>
+                  <span key={`subheading-${index}`}>
+                    <span className="p-1">{item.trim()}</span>
                     {index < array.length - 1 && (
-                      <svg className="w-1 h-1 text-gray-500" viewBox="0 0 6 6">
+                      <svg className="w-1 h-1 text-gray-500 inline-block" viewBox="0 0 6 6">
                         <circle cx="3" cy="3" r="3" fill="currentColor" />
                       </svg>
                     )}
-                  </>
+                  </span>
                 ))}
               </div>
             )
@@ -104,10 +104,9 @@ const ListingCard: FC<ListingCardProps> = (props) => {
               <div className="flex items-center gap-2">
                 {props.secondaryContent.split('•').map((item, index, array) => {
                   if (index === 0) {
-                    // First item contains the numbers already space-separated
                     const [beds, baths, people] = item.trim().split('');
                     return (
-                      <div key={index} className="flex items-center gap-2">
+                      <div key={`metrics-${index}`} className="flex items-center gap-2">
                         {/* Bed icon with number */}
                         <div className="flex items-center gap-1">
                           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
@@ -134,12 +133,12 @@ const ListingCard: FC<ListingCardProps> = (props) => {
                     );
                   }
                   return (
-                    <>
-                      <svg className="w-7 h-3 text-gray-500" viewBox="0 0 8 8">
+                    <span key={`secondary-${index}`}>
+                      <svg className="w-7 h-3 text-gray-500 inline-block" viewBox="0 0 8 8">
                         <circle cx="4" cy="4" r="2" fill="currentColor" />
                       </svg>
-                      <span key={index} className="p-1">{item.trim()}</span>
-                    </>
+                      <span className="p-1">{item.trim()}</span>
+                    </span>
                   );
                 })}
               </div>
