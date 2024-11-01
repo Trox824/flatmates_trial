@@ -5,23 +5,18 @@ import Image from "next/image";
 import { useState } from "react";
 import { FiSearch, FiMenu, FiX, FiUser } from "react-icons/fi";
 import { signIn, signOut, useSession } from "next-auth/react";
-import LoginModal from "./LoginModal";
+import FilterModal from "./FilterModal";
 
 export default function Navbar() {
   const { data: session } = useSession();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isLoginModalOpen, setIsLoginModalOpen] = useState(false);
 
   const toggleMobileMenu = () => setIsMobileMenuOpen((prev) => !prev);
 
   return (
     <>
-      <LoginModal
-        isOpen={isLoginModalOpen}
-        onClose={() => setIsLoginModalOpen(false)}
-      />
       {/* Announcement Bar */}
-      <div className="bg-gray-700 text-white text-center py-3 text-sm">
+      <div id='noticebar'className="bg-gray-700 text-white text-center py-3 text-sm">
         Australia&apos;s biggest share accommodation website{" "}
         <Link href="/about" className="underline">
           Learn more
@@ -43,34 +38,22 @@ export default function Navbar() {
             />
           </Link>
 
-          {/* Search Bar */}
-          <div className="flex-grow mx-8 hidden md:flex items-center border border-gray-400 rounded-lg px-3 py-3">
-            <FiSearch className="text-gray-400 mr-2" />
-            <input
-              type="text"
-              placeholder="Search rooms and housemates"
-              className="bg-transparent outline-none w-full text-sm text-gray-600"
-            />
+          {/* Search Bar / Filter Modal */}
+          <div className="flex-grow mx-4">
+            <div className="max-w-lg mx-auto">
+              <FilterModal />
+            </div>
           </div>
 
           {/* Desktop Navigation Links */}
           <div className="hidden md:flex items-center space-x-6">
-            <Link
-              href="/shortlist"
-              className="font-semibold text-gray-800 text-sm"
-            >
+            <Link href="/shortlist" className="font-semibold text-gray-800 text-sm">
               Shortlist
             </Link>
-            <Link
-              href="/messages"
-              className="font-semibold text-gray-800 text-sm"
-            >
+            <Link href="/messages" className="font-semibold text-gray-800 text-sm">
               Messages
             </Link>
-            <Link
-              href="/guides"
-              className="font-semibold text-gray-800 text-sm"
-            >
+            <Link href="/guides" className="font-semibold text-gray-800 text-sm">
               Guides
             </Link>
             {session ? (
@@ -83,12 +66,12 @@ export default function Navbar() {
                 Sign out
               </button>
             ) : (
-              <button
-                onClick={() => setIsLoginModalOpen(true)}
+              <Link
+                href="/login"
                 className="flex items-center font-semibold text-gray-800 text-sm"
               >
                 <FiUser className="mr-2" /> Sign in
-              </button>
+              </Link>
             )}
           </div>
 
@@ -139,15 +122,13 @@ export default function Navbar() {
                 Sign out
               </button>
             ) : (
-              <button
-                onClick={() => {
-                  setIsLoginModalOpen(true);
-                  setIsMobileMenuOpen(false);
-                }}
+              <Link
+                href="/login"
                 className="block px-4 py-2 text-gray-600 font-semibold hover:bg-gray-100 rounded-md"
+                onClick={() => setIsMobileMenuOpen(false)}
               >
                 Sign in
-              </button>
+              </Link>
             )}
           </div>
         )}
