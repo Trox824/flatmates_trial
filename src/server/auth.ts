@@ -1,15 +1,15 @@
+// src/server/auth.ts
+
 import { PrismaAdapter } from "@auth/prisma-adapter";
+import { type GetServerSidePropsContext } from "next";
 import {
   getServerSession,
   type DefaultSession,
   type NextAuthOptions,
 } from "next-auth";
+import CredentialsProvider from "next-auth/providers/credentials";
 import FacebookProvider from "next-auth/providers/facebook";
-import { db } from "~/server/db";
-
-// You can import more providers here
-import GithubProvider from "next-auth/providers/github";
-import GoogleProvider from "next-auth/providers/google";
+import { prisma } from "./db";
 
 declare module "next-auth" {
   interface Session extends DefaultSession {
@@ -17,6 +17,18 @@ declare module "next-auth" {
       id: string;
     } & DefaultSession["user"];
   }
+}
+
+interface FacebookProfile {
+  id: string;
+  name?: string;
+  username?: string;
+  email?: string;
+  picture?: {
+    data?: {
+      url: string;
+    };
+  };
 }
 
 export const authOptions: NextAuthOptions = {
@@ -28,27 +40,76 @@ export const authOptions: NextAuthOptions = {
         id: user.id,
       },
     }),
+    jwt: ({ token, user }) => {
+      if (user) {
+        token.id = user.id;
+      }
+      return token;
+    },
   },
-  adapter: PrismaAdapter(db),
+  adapter: PrismaAdapter(prisma),
   providers: [
     FacebookProvider({
       clientId: process.env.FACEBOOK_CLIENT_ID!,
       clientSecret: process.env.FACEBOOK_CLIENT_SECRET!,
+      authorization: {
+        params: {
+          scope: "email public_profile",
+        },
+      },
+      profile: (profile: FacebookProfile) => {
+        return {
+          id: profile.id,
+          name: profile.name ?? profile.username ?? "Unknown",
+          email: profile.email ?? null,
+          image: profile.picture?.data?.url ?? null,
+        };
+      },
     }),
-    GithubProvider({
-      clientId: process.env.GITHUB_CLIENT_ID!,
-      clientSecret: process.env.GITHUB_CLIENT_SECRET!,
-    }),
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+    CredentialsProvider({
+      name: "credentials",
+      credentials: {
+        email: { label: "Email", type: "text" },
+        password: { label: "Password", type: "password" },
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials.password) {
+          throw new Error("Invalid credentials");
+        }
+
+        const user = await prisma.user.findUnique({
+          where: { email: credentials.email },
+        });
+
+        if (!user) {
+          throw new Error("User not found");
+        }
+
+        // Add your password comparison logic here
+        // const isValid = await comparePasswords(credentials.password, user.password);
+
+        // if (!isValid) {
+        //   throw new Error("Invalid password");
+        // }
+
+        return user;
+      },
     }),
   ],
   pages: {
-    signIn: '/auth/signin',
-    error: '/auth/error', // Error code passed in query string as ?error=
+    signIn: "/login",
+    error: "/login",
   },
-  debug: process.env.NODE_ENV === 'development',
+  session: {
+    strategy: "jwt",
+  },
+  debug: process.env.NODE_ENV === "development",
+  secret: process.env.NEXTAUTH_SECRET,
 };
 
-export const getServerAuthSession = () => getServerSession(authOptions);
+export const getServerAuthSession = (ctx: {
+  req: GetServerSidePropsContext["req"];
+  res: GetServerSidePropsContext["res"];
+}) => {
+  return getServerSession(ctx.req, ctx.res, authOptions);
+};

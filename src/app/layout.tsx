@@ -1,3 +1,5 @@
+"use client";
+
 import "~/styles/globals.css";
 
 import { GeistSans } from "geist/font/sans";
@@ -7,12 +9,7 @@ import { TRPCReactProvider } from "~/trpc/react";
 import Navbar from "./_components/navbar";
 import { Providers } from "./providers";
 import Footer from "./_components/footer";
-
-export const metadata: Metadata = {
-  title: "Flatmate",
-  description: "Find your perfect flatmate",
-  icons: [{ rel: "icon", url: "/favicon.ico" }],
-};
+import { SessionProvider } from "next-auth/react";
 
 export default function RootLayout({
   children,
@@ -20,14 +17,16 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className={`${GeistSans.variable}`}>
-      <body>
-        <Providers>
-          <Navbar />
-          <TRPCReactProvider>{children}</TRPCReactProvider>
-          <Footer />
-        </Providers>
-      </body>
-    </html>
+    <SessionProvider>
+      <html lang="en" className={`${GeistSans.variable}`}>
+        <body>
+          <Providers>
+            <Navbar />
+            <TRPCReactProvider>{children}</TRPCReactProvider>
+            <Footer />
+          </Providers>
+        </body>
+      </html>
+    </SessionProvider>
   );
 }

@@ -2,15 +2,21 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
-import { FiSearch, FiMenu, FiX, FiUser } from "react-icons/fi";
-import { signIn, signOut, useSession } from "next-auth/react";
+import { useEffect, useState } from "react";
+import { FiMenu, FiX, FiUser } from "react-icons/fi";
+import { signOut, useSession } from "next-auth/react";
 import FilterModal from "./FilterModal";
 import NoticeBar from "~/app/_components/home/NoticeBar";
 
 export default function Navbar() {
-  const { data: session } = useSession();
+  const { data: session, status } = useSession();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Debug session data
+  useEffect(() => {
+    console.log("Session Status:", status);
+    console.log("Session Data:", session);
+  }, [session, status]);
 
   const toggleMobileMenu = () => setIsMobileMenuOpen((prev) => !prev);
 
@@ -35,9 +41,7 @@ export default function Navbar() {
 
           {/* Search Bar / Filter Modal */}
           <div className="mx-4 flex-grow">
-            <div className="">
-              <FilterModal />
-            </div>
+            <FilterModal />
           </div>
 
           {/* Desktop Navigation Links */}
@@ -60,15 +64,30 @@ export default function Navbar() {
             >
               Guides
             </Link>
-            {session ? (
-              <button
-                onClick={async () => {
-                  await signOut();
-                }}
-                className="rounded px-4 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-100"
-              >
-                Sign out
-              </button>
+            {status === "loading" ? (
+              <div className="rounded px-4 py-2 text-sm font-semibold text-gray-800">
+                Loading...
+              </div>
+            ) : session ? (
+              <div className="flex items-center space-x-2">
+                {session.user.image && (
+                  <Image
+                    src={session.user.image}
+                    alt="User Avatar"
+                    width={32}
+                    height={32}
+                    className="rounded-full"
+                  />
+                )}
+                <button
+                  onClick={async () => {
+                    await signOut();
+                  }}
+                  className="rounded px-4 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-100"
+                >
+                  Sign out
+                </button>
+              </div>
             ) : (
               <Link
                 href="/login"
@@ -115,7 +134,11 @@ export default function Navbar() {
             >
               Guides
             </Link>
-            {session ? (
+            {status === "loading" ? (
+              <div className="block rounded-md px-4 py-2 font-semibold text-gray-600">
+                Loading...
+              </div>
+            ) : session ? (
               <button
                 onClick={async () => {
                   await signOut();

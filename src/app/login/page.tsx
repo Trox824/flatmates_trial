@@ -3,8 +3,11 @@
 import type { FC, FormEvent } from "react";
 import { useEffect } from "react";
 import Link from "next/link";
+import { signIn, signOut, useSession } from "next-auth/react";
 
 const LoginPage: FC = () => {
+  const { data: session, status } = useSession();
+
   useEffect(() => {
     // Only handle footer blur and body scroll
     const footer = document.querySelector("#footer");
@@ -21,10 +24,83 @@ const LoginPage: FC = () => {
     };
   }, []);
 
-  const handleSubmit = (e: FormEvent) => {
+  // Debug session data
+  useEffect(() => {
+    console.log("Login Page - Session Status:", status);
+    console.log("Login Page - Session Data:", session);
+  }, [session, status]);
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // Add your login logic here
+    const formData = new FormData(e.currentTarget);
+
+    const email = formData.get("email") as string;
+    const password = formData.get("password") as string;
+
+    try {
+      const result = await signIn("credentials", {
+        email,
+        password,
+        redirect: false,
+      });
+
+      if (result?.error) {
+        // Handle error (you might want to add state for error messages)
+        console.error(result.error);
+      } else {
+        // Redirect to dashboard or home page
+        window.location.href = "/";
+      }
+    } catch (error) {
+      console.error("Login failed:", error);
+    }
   };
+
+  const handleSocialLogin = async (provider: "facebook" | "apple") => {
+    try {
+      const result = await signIn(provider, {
+        callbackUrl: "/",
+        redirect: true,
+      });
+
+      if (result?.error) {
+        console.error(`${provider} login error:`, result.error);
+      }
+    } catch (error) {
+      console.error(`${provider} login failed:`, error);
+    }
+  };
+
+  if (session) {
+    return (
+      <div className="fixed inset-0 z-[999] flex items-start justify-center overflow-hidden">
+        <div className="relative mx-auto mt-[70px] h-auto w-[752px] rounded-2xl border border-gray-300 bg-white p-[5.5rem] px-[7rem]">
+          <div className="mx-auto max-w-[25.25rem] text-center">
+            <h1 className="m-0 text-center text-[24px] text-[#2e3a4a]">
+              <b className="font-extrabold">Welcome, {session.user?.name}</b>
+            </h1>
+
+            {session.user?.image && (
+              <img
+                src={session.user.image}
+                alt="Profile"
+                className="mx-auto mt-4 h-20 w-20 rounded-full"
+              />
+            )}
+
+            <button
+              onClick={() => signOut({ callbackUrl: "/" })}
+              className="duration-250 relative mx-auto mb-2 mt-6 block min-h-[3rem] w-full min-w-[190px] rounded-md border border-[#058a8a] bg-[#058a8a] p-3 px-6 text-[1rem] font-semibold leading-[1.5rem] transition hover:bg-[#0aabab]"
+            >
+              <span className="text-[16px] font-semibold text-white">
+                Sign Out
+              </span>
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -61,9 +137,9 @@ const LoginPage: FC = () => {
             <div className="text-center leading-6 text-[#6d7580]">
               <div className="mx-auto max-w-[25.25rem]">
                 <button
+                  onClick={() => handleSocialLogin("facebook")}
                   className="duration-250 relative mx-auto mb-2 mt-6 block min-h-[3rem] w-full min-w-[190px] rounded-md border border-[#1877f2] bg-[#1877f2] p-3 px-6 text-[1rem] font-semibold leading-[1.5rem] transition hover:bg-[#1158b4]"
-                  type="submit"
-                  name="action"
+                  type="button"
                 >
                   <span className="flex justify-center">
                     <span className="mr-1 flex items-center justify-center">
@@ -85,9 +161,9 @@ const LoginPage: FC = () => {
                 </button>
 
                 <button
+                  onClick={() => handleSocialLogin("apple")}
                   className="duration-250 relative mx-auto mb-2 mt-6 mt-[16px] block min-h-[3rem] w-full min-w-[190px] rounded-md border border-[#000] bg-[#000] p-3 px-6 text-[1rem] font-semibold leading-[1.5rem] transition"
-                  type="submit"
-                  name="action"
+                  type="button"
                 >
                   <span className="text-[16px] font-semibold text-white">
                     Sign in with Apple
@@ -107,6 +183,7 @@ const LoginPage: FC = () => {
                 <div className="mb-1">
                   <div className="mb-4">
                     <input
+                      name="email"
                       placeholder="Email or mobile"
                       className="w-full rounded-md border border-gray-300 p-2 focus:outline-none focus:ring focus:ring-blue-300"
                       type="text"
@@ -114,6 +191,7 @@ const LoginPage: FC = () => {
                   </div>
                   <div className="relative mb-4">
                     <input
+                      name="password"
                       placeholder="Password"
                       className="w-full rounded-md border border-gray-300 p-2 focus:outline-none focus:ring focus:ring-blue-300"
                       type="password"
