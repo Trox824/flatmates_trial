@@ -1,11 +1,11 @@
-import { NextResponse } from 'next/server';
-import { db } from '~/server/db';
-import type { Listing } from '@prisma/client';
+import { NextResponse } from "next/server";
+import { db } from "~/server/db";
+import type { Listing } from "@prisma/client";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
-  const page = parseInt(url.searchParams.get('page') ?? '1');
-  const limit = parseInt(url.searchParams.get('limit') ?? '12');
+  const page = parseInt(url.searchParams.get("page") ?? "1");
+  const limit = parseInt(url.searchParams.get("limit") ?? "12");
 
   const offset = (page - 1) * limit;
 
@@ -25,7 +25,7 @@ export async function GET(request: Request) {
 
     return NextResponse.json({ listings: allListings, page });
   } catch (error) {
-    console.error('Error fetching listings:', error);
+    console.error("Error fetching listings:", error);
     return NextResponse.error();
   }
 }

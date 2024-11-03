@@ -6,6 +6,7 @@ import { useState } from "react";
 import { FiSearch, FiMenu, FiX, FiUser } from "react-icons/fi";
 import { signIn, signOut, useSession } from "next-auth/react";
 import FilterModal from "./FilterModal";
+import NoticeBar from "~/app/_components/home/NoticeBar";
 
 export default function Navbar() {
   const { data: session } = useSession();
@@ -16,16 +17,10 @@ export default function Navbar() {
   return (
     <>
       {/* Announcement Bar */}
-      <div id='noticebar'className="bg-gray-700 text-white text-center py-3 text-sm">
-        Australia&apos;s biggest share accommodation website{" "}
-        <Link href="/about" className="underline">
-          Learn more
-        </Link>
-      </div>
-
+      <NoticeBar />
       {/* Sticky Navbar */}
-      <div className="sticky top-0 bg-white z-50 px-4 py-6 border-b border-gray-300">
-        <div className="max-w-7xl px-4 mx-auto flex items-center justify-between">
+      <div className="sticky top-0 z-50 border-b border-gray-300 bg-white px-4 py-6">
+        <div className="mx-auto flex max-w-[75rem] items-center justify-between">
           {/* Logo Section */}
           <Link href="/" className="flex-shrink-0">
             <Image
@@ -34,26 +29,35 @@ export default function Navbar() {
               width={230}
               height={70}
               priority
-              className="object-contain mr-7"
+              className="mr-7 object-contain"
             />
           </Link>
 
           {/* Search Bar / Filter Modal */}
-          <div className="flex-grow mx-4">
-            <div className="max-w-lg mx-auto">
+          <div className="mx-4 flex-grow">
+            <div className="">
               <FilterModal />
             </div>
           </div>
 
           {/* Desktop Navigation Links */}
-          <div className="hidden md:flex items-center space-x-6">
-            <Link href="/shortlist" className="font-semibold text-gray-800 text-sm">
+          <div className="hidden items-center space-x-1 md:flex">
+            <Link
+              href="/shortlist"
+              className="rounded px-4 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-100"
+            >
               Shortlist
             </Link>
-            <Link href="/messages" className="font-semibold text-gray-800 text-sm">
+            <Link
+              href="/messages"
+              className="rounded px-4 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-100"
+            >
               Messages
             </Link>
-            <Link href="/guides" className="font-semibold text-gray-800 text-sm">
+            <Link
+              href="/guides"
+              className="rounded px-4 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-100"
+            >
               Guides
             </Link>
             {session ? (
@@ -61,14 +65,14 @@ export default function Navbar() {
                 onClick={async () => {
                   await signOut();
                 }}
-                className="font-semibold text-gray-800 text-sm"
+                className="rounded px-4 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-100"
               >
                 Sign out
               </button>
             ) : (
               <Link
                 href="/login"
-                className="flex items-center font-semibold text-gray-800 text-sm"
+                className="flex items-center rounded px-4 py-2 text-sm font-semibold text-gray-800 hover:bg-gray-100"
               >
                 <FiUser className="mr-2" /> Sign in
               </Link>
@@ -92,21 +96,21 @@ export default function Navbar() {
           <div className="mt-3 space-y-2 md:hidden">
             <Link
               href="/shortlist"
-              className="block px-4 py-2 text-gray-600 font-semibold hover:bg-gray-100 rounded-md"
+              className="block rounded-md px-4 py-2 font-semibold text-gray-600 hover:bg-gray-100"
               onClick={() => setIsMobileMenuOpen(false)}
             >
               Shortlist
             </Link>
             <Link
               href="/messages"
-              className="block px-4 py-2 text-gray-600 font-semibold hover:bg-gray-100 rounded-md"
+              className="block rounded-md px-4 py-2 font-semibold text-gray-600 hover:bg-gray-100"
               onClick={() => setIsMobileMenuOpen(false)}
             >
               Messages
             </Link>
             <Link
               href="/guides"
-              className="block px-4 py-2 text-gray-600 font-semibold hover:bg-gray-100 rounded-md"
+              className="block rounded-md px-4 py-2 font-semibold text-gray-600 hover:bg-gray-100"
               onClick={() => setIsMobileMenuOpen(false)}
             >
               Guides
@@ -117,14 +121,14 @@ export default function Navbar() {
                   await signOut();
                   setIsMobileMenuOpen(false);
                 }}
-                className="block px-4 py-2 text-gray-600 font-semibold hover:bg-gray-100 rounded-md"
+                className="block rounded-md px-4 py-2 font-semibold text-gray-600 hover:bg-gray-100"
               >
                 Sign out
               </button>
             ) : (
               <Link
                 href="/login"
-                className="block px-4 py-2 text-gray-600 font-semibold hover:bg-gray-100 rounded-md"
+                className="block rounded-md px-4 py-2 font-semibold text-gray-600 hover:bg-gray-100"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Sign in

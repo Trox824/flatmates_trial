@@ -24,10 +24,8 @@ export default function RootLayout({
       <body>
         <Providers>
           <Navbar />
-          <TRPCReactProvider>
-            {children}
-          </TRPCReactProvider>
-          <Footer />    
+          <TRPCReactProvider>{children}</TRPCReactProvider>
+          <Footer />
         </Providers>
       </body>
     </html>

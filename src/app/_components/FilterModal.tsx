@@ -24,7 +24,7 @@ export default function FilterModal() {
 
   return (
     <div className="sticky top-0 bg-white z-50 border-gray-300">
-      <div className="max-w-7xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <div className="relative">
           {/* Search Bar */}
           <div 

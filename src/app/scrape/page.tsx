@@ -1,83 +1,101 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
+import { useState } from "react";
 
 interface ScrapeResponse {
-  message?: string;
+  success: boolean;
+  message: string;
   error?: string;
-  data?: {
-    id: string;
-    type: 'person' | 'room';
-    heading: string;
-    price: number;
-    billsIncluded: boolean;
-    address: string | null;
-    secondaryContent: string | null;
-    subheading: string | null;
-    description: string | null;
-    availableFrom: Date | null;
-    noBeds: number;
-    noBathrooms: number;
-    noFlatmates: number;
-    propertyFeatures: string[];
-    accpetingTags: string[];
-    inspectAvailable: boolean;
-    weeklyRent: number;
-  }[];
 }
 
 export default function TestPage() {
-  const [result, setResult] = useState<ScrapeResponse | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [apiKey, setApiKey] = useState('');
+  const [homeResult, setHomeResult] = useState<ScrapeResponse | null>(null);
+  const [roomResult, setRoomResult] = useState<ScrapeResponse | null>(null);
+  const [loadingHomes, setLoadingHomes] = useState(false);
+  const [loadingRooms, setLoadingRooms] = useState(false);
 
-  const handleScrape = async () => {
-    setLoading(true);
+  const handleScrapeHomes = async () => {
+    setLoadingHomes(true);
+    setHomeResult(null);
     try {
-      const response = await fetch('/api/scrape', {
-        method: 'POST',
+      const response = await fetch("/api/scrape", {
+        method: "POST",
         headers: {
-          'x-api-key': apiKey,
-          'Content-Type': 'application/json'
-        }
+          "Content-Type": "application/json",
+        },
       });
-      const data = await response.json() as ScrapeResponse;
-      setResult(data);
+      const data = (await response.json()) as ScrapeResponse;
+      setHomeResult(data);
     } catch (error: unknown) {
-      console.error('Scraping failed:', error);
-      setResult(null);
+      console.error("Scraping homes failed:", error);
+      setHomeResult({
+        success: false,
+        message: "Scraping homes failed",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
     } finally {
-      setLoading(false);
+      setLoadingHomes(false);
+    }
+  };
+
+  const handleScrapeRooms = async () => {
+    setLoadingRooms(true);
+    setRoomResult(null);
+    try {
+      const response = await fetch("/api/scrapeRooms", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      });
+      const data = (await response.json()) as ScrapeResponse;
+      setRoomResult(data);
+    } catch (error: unknown) {
+      console.error("Scraping rooms failed:", error);
+      setRoomResult({
+        success: false,
+        message: "Scraping rooms failed",
+        error: error instanceof Error ? error.message : "Unknown error",
+      });
+    } finally {
+      setLoadingRooms(false);
     }
   };
 
   return (
-    <div className="p-4 max-w-2xl mx-auto">
-      <div className="mb-4">
-        <label htmlFor="apiKey" className="block mb-2">API Key:</label>
-        <input
-          id="apiKey"
-          type="text"
-          value={apiKey}
-          onChange={(e) => setApiKey(e.target.value)}
-          className="w-full p-2 border rounded"
-          placeholder="Enter your API key"
-        />
+    <div className="mx-auto max-w-2xl p-4">
+      <div className="flex space-x-4">
+        <button
+          onClick={handleScrapeHomes}
+          disabled={loadingHomes}
+          className="rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600 disabled:bg-gray-400"
+        >
+          {loadingHomes ? "Scraping Homes..." : "Scrape Homes"}
+        </button>
+
+        <button
+          onClick={handleScrapeRooms}
+          disabled={loadingRooms}
+          className="rounded bg-green-500 px-4 py-2 text-white hover:bg-green-600 disabled:bg-gray-400"
+        >
+          {loadingRooms ? "Scraping Rooms..." : "Scrape Rooms"}
+        </button>
       </div>
 
-      <button 
-        onClick={handleScrape}
-        disabled={loading || !apiKey}
-        className="px-4 py-2 bg-blue-500 text-white rounded disabled:bg-gray-400 hover:bg-blue-600"
-      >
-        {loading ? 'Scraping...' : 'Start Scrape'}
-      </button>
-      
-      {result && (
+      {homeResult && (
         <div className="mt-4">
-          <h3 className="font-bold mb-2">Response:</h3>
-          <pre className="p-4 bg-gray-100 rounded overflow-auto">
-            {JSON.stringify(result, null, 2)}
+          <h3 className="mb-2 font-bold">Homes Scrape Response:</h3>
+          <pre className="overflow-auto rounded bg-gray-100 p-4">
+            {JSON.stringify(homeResult, null, 2)}
+          </pre>
+        </div>
+      )}
+
+      {roomResult && (
+        <div className="mt-4">
+          <h3 className="mb-2 font-bold">Rooms Scrape Response:</h3>
+          <pre className="overflow-auto rounded bg-gray-100 p-4">
+            {JSON.stringify(roomResult, null, 2)}
           </pre>
         </div>
       )}

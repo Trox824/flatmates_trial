@@ -67,32 +67,37 @@ model PersonListing {
 }
 
 model Room {
-  id        String   @id @default(cuid())
-  name      String
-  type      String
-  location  String?
-  oneLiner  String?
-  description String?
-  aboutFlatmate String?
-  noBeds Int
-  noBathrooms Int
-  noFlatmates Int
+  id               String   @id @default(cuid())
+  name             String
+  type             String
+  author           String?
+  responseRate     String?
+  location         String?
+  oneLiner         String?
+  description      String?
+  aboutFlatmate    String?
+  noBeds           Int
+  noBathrooms      Int
+  noFlatmates      Int
   propertyFeatures String[]
+  roomFeatures     String[]
   accpetingTags    String[]
   inspectAvailable Boolean
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  weeklyRent Int
-  bond       Int?
-  roomType   String?
-  stayLength Int?
-  furnished String?
-  internet String?
-  parking String?
-  bathRoom String?
-  bills String?
-  acceptedPeople String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  weeklyRent       Int
+  bond             Int?
+  roomType         String?
+  stayLength       Int?
+  furnished        String?
+  internet         String?
+  parking          String?
+  bathRoom         String?
+  bills            String?
+  acceptedPeople   String?
+  images           String[] // New field to store image URLs
 }
+
 
 model FeatureListing {
   name      String   @id

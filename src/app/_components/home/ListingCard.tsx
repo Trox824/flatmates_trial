@@ -31,7 +31,7 @@ const ListingCard: FC<ListingCardProps> = (props) => {
     <Link href={`/${props.id}`} className="block">
       <div className="bg-white overflow-hidden cursor-pointer transition-shadow duration-200">
         {/* Image Container */}
-        <div className="relative aspect-[4/3] w-full">
+        <div className="relative aspect-[123/100] w-full">
           <Image
             src={housemate}
             alt={props.heading}

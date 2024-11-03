@@ -4,7 +4,7 @@ import type { FC, FormEvent } from "react";
 import { useEffect } from "react";
 import Link from "next/link";
 
-const LoginPage: FC = () => {
+const SignupPage: FC = () => {
   useEffect(() => {
     // Only handle footer blur and body scroll
     const footer = document.querySelector("#footer");
@@ -23,7 +23,7 @@ const LoginPage: FC = () => {
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    // Add your login logic here
+    // Add your signup logic here
   };
 
   return (
@@ -55,7 +55,7 @@ const LoginPage: FC = () => {
 
           <div className="mx-auto max-w-[25.25rem] text-center">
             <h1 className="m-0 text-center text-[24px] text-[#2e3a4a]">
-              <b className="font-extrabold">Login to your account</b>
+              <b className="font-extrabold">Create your account</b>
             </h1>
 
             <div className="text-center leading-6 text-[#6d7580]">
@@ -107,7 +107,14 @@ const LoginPage: FC = () => {
                 <div className="mb-1">
                   <div className="mb-4">
                     <input
-                      placeholder="Email or mobile"
+                      placeholder="First Name"
+                      className="w-full rounded-md border border-gray-300 p-2 focus:outline-none focus:ring focus:ring-blue-300"
+                      type="text"
+                    />
+                  </div>
+                  <div className="mb-4">
+                    <input
+                      placeholder="Email"
                       className="w-full rounded-md border border-gray-300 p-2 focus:outline-none focus:ring focus:ring-blue-300"
                       type="text"
                     />
@@ -122,39 +129,15 @@ const LoginPage: FC = () => {
                 </div>
               </div>
 
-              <div className="mt-4 flex justify-center text-center leading-6 text-[#6d7580]">
-                <Link
-                  href="/forgot-password"
-                  className="text-link-primary float-right mb-4 text-[1rem] font-normal leading-[1.5rem]"
-                >
-                  <p className="text-link-primary m-0 text-[1rem] font-semibold leading-[1.5rem]">
-                    Forgot your password?
-                  </p>
-                </Link>
-              </div>
-
               <div className="duration-250 mt-4 w-full transition">
                 <button
                   className="duration-250 relative mx-auto mb-2 mt-6 block min-h-[3rem] w-full min-w-[190px] rounded-md border border-[#058a8a] bg-[#058a8a] p-3 px-6 text-[1rem] font-semibold leading-[1.5rem] transition hover:bg-[#0aabab]"
                   type="submit"
                 >
                   <span className="text-[16px] font-semibold text-white">
-                    Log in
+                    Sign up
                   </span>
                 </button>
-              </div>
-
-              <div className="duration-250 w-full transition">
-                <Link href="/signup">
-                  <button
-                    className="duration-250 relative mx-auto mb-2 block min-h-[3rem] w-full min-w-[190px] rounded-md border border-gray-700 bg-white p-3 px-6 text-[1rem] font-semibold leading-[1.5rem] transition hover:bg-gray-50"
-                    type="button"
-                  >
-                    <span className="text-[16px] font-semibold text-gray-700">
-                      Create an account
-                    </span>
-                  </button>
-                </Link>
               </div>
             </form>
 
@@ -172,6 +155,20 @@ const LoginPage: FC = () => {
                 </a>
               </p>
             </div>
+
+            <div className="mt-4 flex justify-center">
+              <span className="mr-1 text-center leading-6 text-[#6d7580]">
+                Already have an account?
+              </span>
+              <Link
+                href="/login"
+                className="text-link-primary float-right mb-4 text-[1rem] font-normal leading-[1.5rem]"
+              >
+                <p className="text-link-primary m-0 text-[1rem] font-semibold leading-[1.5rem]">
+                  Login here
+                </p>
+              </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -179,4 +176,4 @@ const LoginPage: FC = () => {
   );
 };
 
-export default LoginPage;
+export default SignupPage;

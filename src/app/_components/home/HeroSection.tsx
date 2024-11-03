@@ -1,57 +1,61 @@
-import Image from "next/image";
 import Link from "next/link";
-import housemate from "../../../../public/images/housemate.png";
+import flatmate from "../../../../public/images/flatmate.png";
+import seeker from "../../../../public/images/seeker.png";
 
 export default function HeroSection() {
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-        {/* Property Listing Card */}
-        <div className="bg-white rounded-lg shadow-lg p-6 flex items-center justify-between border-2 border-transparent hover:border-gray-800">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">
-              Create a free<br />property listing
-            </h2>
-            <Link 
-              href="/create-listing"
-              className="inline-block bg-gray-800 text-white px-14 py-3 rounded-md hover:bg-gray-700 transition-colors"
-            >
-              I need a flatmate
-            </Link>
-          </div>
-          <div className="relative w-[168px] h-[168px]">
-            <Image
-              src={housemate}
-              alt="Property illustration"
-              fill
-              className="object-contain"
-            />
+    <div className="flex flex-row space-between my-8 mx-auto max-w-[1200px]">
+      {/* Property Listing Card */}
+      <Link href="/create-listing" className="w-full mx-auto mr-8">
+        <div 
+          className="group border-[2px] hover:border-black border-transparent rounded-[12px] shadow-[0_3px_8px_rgba(0,0,0,0.12),_0_3px_1px_rgba(0,0,0,0.04)] m-1 p-6"
+          style={{
+            backgroundImage: `url(${flatmate.src})`,
+            backgroundPosition: 'right -2px',
+            backgroundRepeat: 'no-repeat',
+            backgroundSize: 'contain'
+          }}
+        >
+          <div className="flex flex-col items-start justify-center h-[168px] z-20">
+            <h3 className="text-[#2f3a4a] text-[1.5rem] font-bold leading-[1.875rem] mb-2 max-w-[230px]">
+              Create a free property listing
+            </h3>
+            <p className="text-[#2f3a4a] text-base leading-6 mb-6 max-w-[230px]">
+            </p>
+            <div className="bg-[#2f3a4a] group-hover:bg-[#44556d] border-0 rounded-[10px] box-border text-center inline-block font-semibold w-[200px] px-4 py-3">
+              <p className="text-white font-semibold m-0 text-[1rem]">
+                I need a flatmate
+              </p>
+            </div>
           </div>
         </div>
+      </Link>
 
-        {/* Seeker Listing Card */}
-        <div className="bg-white rounded-lg shadow-lg p-6 flex items-center justify-between border-2 border-transparent hover:border-gray-800">
-          <div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-4">
-              Create a free<br />seeker listing
-            </h2>
-            <Link 
-              href="/create-seeker"
-              className="inline-block bg-gray-800 text-white px-14 py-3 rounded-md hover:bg-gray-700 transition-colors"
-            >
-              I need a place
-            </Link>
-          </div>
-          <div className="relative w-[168px] h-[168px]">
-            <Image
-              src={housemate}
-              alt="Seeker illustration"
-              fill
-              className="object-contain"
-            />
+      {/* Seeker Listing Card */}
+      <Link href="/create-seeker" className="w-full mx-auto">
+        <div 
+          className="group border-[2px] hover:border-black border-transparent rounded-[12px] shadow-[0_3px_8px_rgba(0,0,0,0.12),_0_3px_1px_rgba(0,0,0,0.04)] m-1 p-6"
+          style={{
+            backgroundImage: `url(${seeker.src})`,
+            backgroundPosition: 'right -2px',
+            backgroundRepeat: 'no-repeat',
+            backgroundSize: 'contain'
+          }}
+        >
+          <div className="flex flex-col items-start justify-center h-[168px] z-20">
+            <h3 className="text-[#2f3a4a] text-[1.5rem] font-bold leading-[1.875rem] mb-2 max-w-[230px]">
+              Create a free seeker listing
+            </h3>
+            <p className="text-[#2f3a4a] text-base leading-6 mb-6 max-w-[230px]">
+            </p>
+            <div className="bg-[#2f3a4a] group-hover:bg-[#44556d] border-0 rounded-[10px] box-border text-center inline-block font-semibold w-[200px] px-4 py-3">
+              <p className="text-white font-semibold m-0 text-[1rem]">
+                I need a place
+              </p>
+            </div>
           </div>
         </div>
-      </div>
+      </Link>
     </div>
   );
 }

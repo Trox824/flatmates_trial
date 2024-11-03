@@ -1,19 +1,9 @@
 import { NextResponse } from 'next/server';
-import { scrapeListings } from './scrape';
+import { scrapeListings } from './scrapeHomeListing';
 import { headers } from 'next/headers';
 
 export async function POST(req: Request) {
   // Add basic authentication
-  const headersList = headers();
-  const apiKey = headersList.get('x-api-key');
-  
-  if (!process.env.SCRAPE_API_KEY || apiKey !== process.env.SCRAPE_API_KEY) {
-    return NextResponse.json(
-      { success: false, message: 'Unauthorized' },
-      { status: 401 }
-    );
-  }
-
   try {
     const result = await scrapeListings();
     return NextResponse.json({ 
