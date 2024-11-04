@@ -1,4 +1,4 @@
-'use client';
+"use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import ListingCard from "./ListingCard";
@@ -15,11 +15,11 @@ interface Listing {
   availableFrom?: Date;
 }
 
-interface ListingsResponse {
-  listings: Listing[];
+interface ListingGridProps {
+  isShortlist?: boolean;
 }
 
-const ListingGrid = () => {
+const ListingGrid = ({ isShortlist = false }: ListingGridProps) => {
   const [listings, setListings] = useState<Listing[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -31,26 +31,42 @@ const ListingGrid = () => {
 
     setLoading(true);
     try {
-      const response = await fetch(`/api/listings?page=${page}&limit=6`);
+      const endpoint = isShortlist
+        ? "/api/favorites/index"
+        : `/api/listings?page=${page}&limit=6`;
+
+      const response = await fetch(endpoint);
       if (!response.ok) {
-        throw new Error('Failed to fetch listings');
+        throw new Error("Failed to fetch listings");
       }
-      const data = (await response.json()) as ListingsResponse;
-      
-      if (!data.listings || data.listings.length === 0) {
+
+      const data = (await response.json()) as {
+        favorites: Listing[];
+        listings: Listing[];
+      };
+
+      const newListings: Listing[] = isShortlist
+        ? data.favorites
+        : data.listings;
+
+      if (newListings.length === 0) {
         setHasMore(false);
         return;
       }
-      
-      setListings((prev) => [...prev, ...data.listings]);
-      setPage((prev) => prev + 1);
+
+      setListings((prev) => [...prev, ...newListings]);
+      if (!isShortlist) {
+        setPage((prev) => prev + 1);
+      } else {
+        setHasMore(false);
+      }
     } catch (error) {
-      console.error('Error fetching listings:', error);
+      console.error("Error fetching listings:", error);
       setHasMore(false);
     } finally {
       setLoading(false);
     }
-  }, [page, loading, hasMore]);
+  }, [page, loading, hasMore, isShortlist]);
 
   useEffect(() => {
     if (loading || !hasMore) return;
@@ -63,9 +79,9 @@ const ListingGrid = () => {
       },
       {
         root: null,
-        rootMargin: '100px',
+        rootMargin: "100px",
         threshold: 0.1,
-      }
+      },
     );
 
     const currentSentinel = sentinelRef.current;
@@ -82,18 +98,26 @@ const ListingGrid = () => {
   }, [loading, hasMore, fetchListings]);
 
   return (
-    <div className="max-w-[75rem] mx-auto py-2">
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+    <div className="mx-auto max-w-[75rem] py-2">
+      <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-3">
         {listings.map((listing) => (
-          <ListingCard key={listing.id} {...listing} />
+          <ListingCard
+            key={listing.id}
+            {...listing}
+            isShortlist={isShortlist}
+          />
         ))}
         {hasMore && (
-          <div ref={sentinelRef} className="h-20" style={{ gridColumn: '1/-1' }}></div>
+          <div
+            ref={sentinelRef}
+            className="h-20"
+            style={{ gridColumn: "1/-1" }}
+          ></div>
         )}
       </div>
 
-      {loading && <p className="text-center mt-4">Loading...</p>}
-      {!hasMore && <p className="text-center mt-4">No more listings.</p>}
+      {loading && <p className="mt-4 text-center">Loading...</p>}
+      {!hasMore && <p className="mt-4 text-center">No more listings.</p>}
     </div>
   );
 };
