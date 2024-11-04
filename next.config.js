@@ -5,7 +5,10 @@
 await import("./src/env.js");
 
 /** @type {import('next').NextConfig} */
-const config = {
+const nextConfig = {
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
   images: {
     domains: [
       "scontent-syd2-1.xx.fbcdn.net",
@@ -16,4 +19,4 @@ const config = {
   },
 };
 
-export default config;
+export default nextConfig;

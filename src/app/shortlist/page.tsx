@@ -1,10 +1,6 @@
 "use client";
 
-import { api } from "~/trpc/react";
 import { Breadcrumb } from "~/app/_components/breadcrumb";
-import ImageScroll from "~/app/_components/ImageScroll";
-import PropertiesContent from "~/app/_components/propertiesContent/PropertiesContent";
-import PropertyAside from "~/app/_components/propertiesContent/PropertyAside";
 import ListingGrid from "~/app/_components/home/ListingGrid";
 
 interface PageProps {
@@ -15,16 +11,6 @@ interface PageProps {
 
 export default function PersonPage({ params }: PageProps) {
   const { id } = params;
-
-  const imagePaths = [
-    "/images/housemate.png",
-    "/images/housemate.png",
-    "/images/housemate.png",
-    "/images/housemate.png",
-    "/images/housemate.png",
-    "/images/housemate.png",
-    "/images/housemate.png",
-  ];
 
   return (
     <div>
