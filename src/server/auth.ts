@@ -33,21 +33,16 @@ interface FacebookProfile {
 
 export const authOptions: NextAuthOptions = {
   callbacks: {
-    session: ({ session, token }) => {
-      if (token && session.user) {
-        return {
-          ...session,
-          user: {
-            ...session.user,
-            id: token.sub ?? "",
-          },
-        };
-      }
-      return session;
-    },
+    session: ({ session, token }) => ({
+      ...session,
+      user: {
+        ...session.user,
+        id: token.id,
+      },
+    }),
     jwt: ({ token, user }) => {
       if (user) {
-        token.sub = user.id;
+        token.id = user.id;
       }
       return token;
     },
@@ -59,7 +54,7 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.FACEBOOK_CLIENT_SECRET!,
       authorization: {
         params: {
-          scope: "email,public_profile",
+          scope: "email public_profile",
         },
       },
       profile: (profile: FacebookProfile) => {
@@ -107,34 +102,6 @@ export const authOptions: NextAuthOptions = {
   },
   session: {
     strategy: "jwt",
-  },
-  cookies: {
-    sessionToken: {
-      name: `__Secure-next-auth.session-token`,
-      options: {
-        httpOnly: true,
-        sameSite: "lax",
-        path: "/",
-        secure: true, // Always true in production
-      },
-    },
-    callbackUrl: {
-      name: `__Secure-next-auth.callback-url`,
-      options: {
-        sameSite: "lax",
-        path: "/",
-        secure: true,
-      },
-    },
-    csrfToken: {
-      name: `__Secure-next-auth.csrf-token`,
-      options: {
-        httpOnly: true,
-        sameSite: "lax",
-        path: "/",
-        secure: true,
-      },
-    },
   },
   debug: process.env.NODE_ENV === "development",
   secret: process.env.NEXTAUTH_SECRET,
