@@ -33,16 +33,21 @@ interface FacebookProfile {
 
 export const authOptions: NextAuthOptions = {
   callbacks: {
-    session: ({ session, token }) => ({
-      ...session,
-      user: {
-        ...session.user,
-        id: token.id,
-      },
-    }),
+    session: ({ session, token }) => {
+      if (token && session.user) {
+        return {
+          ...session,
+          user: {
+            ...session.user,
+            id: token.sub ?? "",
+          },
+        };
+      }
+      return session;
+    },
     jwt: ({ token, user }) => {
       if (user) {
-        token.id = user.id;
+        token.sub = user.id;
       }
       return token;
     },

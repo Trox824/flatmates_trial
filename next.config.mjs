@@ -10,7 +10,6 @@ const config = {
       "scontent.fbsyd4-1.fna.fbcdn.net",
     ],
   },
-  // ... your other config options
 };
 
 export default withAxiom(config);
