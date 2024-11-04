@@ -12,6 +12,8 @@ const config = {
       "platform-lookaside.fbsbx.com",
       "scontent.xx.fbcdn.net",
       "scontent.fbsyd4-1.fna.fbcdn.net",
+      "platform-lookaside.fbsbx.com", // Facebook profile images
+      "graph.facebook.com",
     ],
   },
 };
