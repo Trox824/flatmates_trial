@@ -7,11 +7,15 @@ import Link from "next/link";
 export default function FilterModal() {
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("Rooms");
+  const [searchInput, setSearchInput] = useState("");
   const modalRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+      if (
+        modalRef.current &&
+        !modalRef.current.contains(event.target as Node)
+      ) {
         setIsOpen(false);
       }
     }
@@ -23,32 +27,32 @@ export default function FilterModal() {
   const tabs = ["Rooms", "Flatmates", "Teamups"];
 
   return (
-    <div className="sticky top-0 bg-white z-50 border-gray-300">
-      <div className="max-w-6xl mx-auto">
+    <div className="sticky top-0 z-50 border-gray-300 bg-white">
+      <div className="mx-auto max-w-6xl">
         <div className="relative">
           {/* Search Bar */}
-          <div 
+          <div
             onClick={() => setIsOpen(true)}
-            className="cursor-pointer flex items-center border border-gray-400 rounded-lg px-3 py-3"
+            className="flex cursor-pointer items-center rounded-lg border border-gray-400 px-3 py-3"
           >
-            <FiSearch className="text-gray-400 mr-2" />
+            <FiSearch className="mr-2 text-gray-400" />
             <input
               type="text"
               placeholder="Search rooms and housemates"
-              className="bg-transparent outline-none w-full text-sm text-gray-600"
+              className="w-full bg-transparent text-sm text-gray-600 outline-none"
               readOnly
             />
           </div>
 
           {/* Modal */}
           {isOpen && (
-            <div 
-              ref={modalRef} 
-              className="absolute top-0 left-0 right-0 bg-white shadow-lg rounded-lg border border-gray-200 py-7 z-[60]"
+            <div
+              ref={modalRef}
+              className="absolute left-0 right-0 top-0 z-[60] rounded-lg border border-gray-200 bg-white py-7 shadow-lg"
             >
-              <div className="max-w-[90%] mx-auto">
+              <div className="mx-auto max-w-[90%]">
                 {/* Tabs */}
-                <div className="max-w-[70%] flex rounded-md mx-auto">
+                <div className="mx-auto flex max-w-[70%] rounded-md">
                   {tabs.map((tab) => (
                     <button
                       key={tab}
@@ -56,7 +60,7 @@ export default function FilterModal() {
                       className={`flex-1 p-3 text-center ${
                         activeTab === tab
                           ? "bg-[#2f3a4a] text-white"
-                          : "bg-white text-[#2f3a4a] border border-[#2f3a4a]"
+                          : "border border-[#2f3a4a] bg-white text-[#2f3a4a]"
                       }`}
                     >
                       {tab}
@@ -68,30 +72,50 @@ export default function FilterModal() {
                 <div className="mt-3">
                   <input
                     type="text"
-                    placeholder="Start typing surburb, city, station or uni"
-                    className="w-full p-3 outline-none border rounded-lg"
+                    placeholder="Start typing suburb, city, station or uni"
+                    className="w-full rounded-lg border p-3 outline-none"
                     autoFocus
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
                   />
                 </div>
 
                 {/* Search Button */}
-                <button className="w-full mt-3 bg-[rgb(0,105,119)] text-white py-3 rounded-lg flex items-center justify-center">
+                <Link
+                  href={`/rooms/${searchInput}`}
+                  className="mt-3 flex w-full items-center justify-center rounded-lg bg-[rgb(0,105,119)] py-3 text-white"
+                >
                   <FiSearch className="mr-2" />
                   <span>Search</span>
-                </button>
+                </Link>
 
                 {/* City Links */}
                 <div className="mt-4 pb-4">
-                  <h3 className="text-[#6d7580] font-semibold">Explore a city</h3>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {["Sydney", "Melbourne", "Brisbane", "Perth", "Gold Coast", "Adelaide"].map((city) => (
+                  <h3 className="font-semibold text-[#6d7580]">
+                    Explore a city
+                  </h3>
+                  <div className="mt-2 flex flex-wrap gap-2">
+                    {[
+                      "Sydney",
+                      "Melbourne",
+                      "Brisbane",
+                      "Perth",
+                      "Gold Coast",
+                      "Adelaide",
+                    ].map((city) => (
                       <Link
                         key={city}
-                        href="/listNav"
-                        className="text-sm text-[#2f3a4a] hover:underline flex items-center"
+                        href={`/rooms/${city}`}
+                        className="flex items-center text-sm text-[#2f3a4a] hover:underline"
                       >
-                        <svg className="map-marker w-4 h-4 mr-1" viewBox="0 0 50 50">
-                          <path className="fill" d="M 25 1 C 16.178 1 9 8.178 9 17 C 9 31.114 23.627 47.94625 24.25 48.65625 C 24.44 48.87325 24.712 49 25 49 C 25.31 48.979 25.56 48.87625 25.75 48.65625 C 26.373 47.93425 41 30.813 41 17 C 41 8.178 33.822 1 25 1 z M 25 12 C 28.313 12 31 14.687 31 18 C 31 21.313 28.313 24 25 24 C 21.687 24 19 21.313 19 18 C 19 14.687 21.687 12 25 12 z" />
+                        <svg
+                          className="map-marker mr-1 h-4 w-4"
+                          viewBox="0 0 50 50"
+                        >
+                          <path
+                            className="fill"
+                            d="M 25 1 C 16.178 1 9 8.178 9 17 C 9 31.114 23.627 47.94625 24.25 48.65625 C 24.44 48.87325 24.712 49 25 49 C 25.31 48.979 25.56 48.87625 25.75 48.65625 C 26.373 47.93425 41 30.813 41 17 C 41 8.178 33.822 1 25 1 z M 25 12 C 28.313 12 31 14.687 31 18 C 31 21.313 28.313 24 25 24 C 21.687 24 19 21.313 19 18 C 19 14.687 21.687 12 25 12 z"
+                          />
                         </svg>
                         {city}
                       </Link>

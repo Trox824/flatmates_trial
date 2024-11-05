@@ -27,7 +27,7 @@ export default function PersonPage({ params }: PageProps) {
 
   return (
     <div>
-      <div className="bg-[#f4f5f5] p-1">
+      <div className="bg-[#f4f5f5] p-2">
         <div className="m-auto block max-w-[1200px] px-[3%]">
           <div className="p- flex w-full flex-row justify-center gap-5">
             <h4 className="mb-0 inline-block w-auto align-middle text-[1rem] font-semibold leading-[2rem] text-[#2f3a4a]">
@@ -66,7 +66,7 @@ export default function PersonPage({ params }: PageProps) {
         />
         <ImageScroll imagePaths={imagePaths} />
 
-        <div className="flex gap-8">
+        <div className="flex">
           <PropertiesContent />
           <PropertyAside />
         </div>

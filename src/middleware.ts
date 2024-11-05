@@ -8,7 +8,7 @@ export function middleware(request: NextRequest) {
     !request.headers.get("x-forwarded-proto")?.includes("https")
   ) {
     return NextResponse.redirect(
-      `https://${request.headers.get("host")}${request.nextUrl.pathname}`,
+      `http://${request.headers.get("host")}${request.nextUrl.pathname}`,
       301,
     );
   }

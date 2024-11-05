@@ -3,7 +3,7 @@ const PropertyAside = () => {
     <aside className="w-[32%] pt-7">
       {/* Message Section */}
       <span id="contact"></span>
-      <div className="relative mb-6 rounded-[12px] border border-[#e3e4e5] bg-[#f8f8f9] p-6 text-center">
+      <div className="relative mb-5 rounded-[12px] border border-[#e3e4e5] bg-[#f8f8f9] p-6 text-center">
         <div className="mb-4 flex items-center justify-center text-center">
           <div className="relative mr-6 h-[88px] w-[88px]">
             <div className="person-dropzone img-container">
@@ -56,7 +56,7 @@ const PropertyAside = () => {
             <div>
               <button
                 type="submit"
-                className="duration-250 relative mx-auto mb-2 mt-6 block min-h-[3rem] w-full min-w-[190px] rounded-md border bg-[#006977] p-3 px-6 text-[1rem] font-semibold leading-[1.5rem] text-[#fff] transition"
+                className="duration-250 relative mx-auto mb-2 mt-4 block min-h-[3rem] w-full min-w-[190px] rounded-md border bg-[#006977] p-3 px-6 text-[1rem] font-semibold leading-[1.5rem] text-[#fff] transition"
               >
                 Send message
               </button>
@@ -67,7 +67,7 @@ const PropertyAside = () => {
         <div>
           <button
             type="button"
-            className="mt-4 w-full rounded-md border border-black bg-white p-3 text-[1rem] font-medium text-gray-700"
+            className="w-full rounded-md border border-black bg-white p-3 text-[1rem] font-medium text-gray-700"
           >
             Login to show Handynumber
           </button>
@@ -76,7 +76,7 @@ const PropertyAside = () => {
 
       {/* Social Media Section */}
       <div className="mb-2 rounded-[12px] border border-[#eaebec] p-[1.5rem] pt-[2rem] text-center">
-        <h3 className="font-mediumleading-[1.5rem] m-0 text-[1rem] text-[#333f48]">
+        <h3 className="m-0 text-[16px] font-medium text-[#333f48]">
           Handy has no verified social media
         </h3>
         <div className="my-3.5 flex h-[42px] items-center justify-center">
@@ -88,7 +88,7 @@ const PropertyAside = () => {
       <div>
         <button
           type="button"
-          className="mb-6 flex w-full items-center justify-center rounded-md p-3 text-sm font-normal text-gray-600"
+          className="mb-4 flex w-full items-center justify-center rounded-md p-3 text-[15px] font-light text-gray-500"
         >
           <span className="mr-2">
             <svg
@@ -106,11 +106,11 @@ const PropertyAside = () => {
 
       {/* Tips Section */}
       <div className="rounded-[12px]">
-        <h3 className="font-base mb-4 text-lg text-[#333f48] text-gray-500">
+        <h3 className="font-base mb-4 text-[17px] text-[#333f48] text-gray-500">
           Tips for securing this room
         </h3>
         <ul className="list-none p-0">
-          <li className="mb-3">
+          <li className="mb-4">
             <a
               href="/info/why-a-viewing-is-important"
               target="_blank"
@@ -120,7 +120,7 @@ const PropertyAside = () => {
               Why a viewing is important
             </a>
           </li>
-          <li className="mb-3">
+          <li className="mb-4">
             <a
               href="/info/why-you-should-use-the-message-system"
               target="_blank"
@@ -130,7 +130,7 @@ const PropertyAside = () => {
               Why you should use the messaging system
             </a>
           </li>
-          <li className="mb-3">
+          <li className="mb-4">
             <a
               href="/info/find-share-accommodation"
               target="_blank"
