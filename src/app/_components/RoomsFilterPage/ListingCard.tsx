@@ -110,7 +110,7 @@ const ListingCard: FC<ListingCardProps> = (props) => {
     <Link href={`/${props.id}`} className="block">
       <div className="cursor-pointer overflow-hidden rounded-2xl bg-white shadow-xl duration-200">
         {/* Image Container */}
-        <div className="relative aspect-[16/9] w-full rounded-xl">
+        <div className="relative aspect-[16/9] w-full rounded-xl shadow-xl">
           <Image
             src={housemate}
             alt={props.heading}
@@ -147,21 +147,21 @@ const ListingCard: FC<ListingCardProps> = (props) => {
         </div>
 
         {/* Content */}
-        <div className="p-4">
-          <div className="mb-1 flex items-start justify-between">
-            <h3 className="text-[1.125rem] font-bold">
+        <div className="px-6 py-4">
+          <div className="mb-2 flex items-start justify-between">
+            <h3 className="text-[1.25rem] font-semibold">
               {props.type === "room" ? `$${props.price}/week` : props.heading}
             </h3>
-            <button className="rounded border border-gray-700 px-3 py-1 text-xs hover:bg-gray-50">
+            <button className="rounded border border-gray-700 px-3 text-xs hover:bg-gray-50">
               Free to message
             </button>
           </div>
 
-          <div className="flex items-center gap-2 text-sm text-gray-600">
+          <div className="flex items-center gap-2 text-[1rem] text-gray-600">
             {props.type === "room"
               ? props.address && <span>{props.address}</span>
               : props.subheading && (
-                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                  <div className="flex items-center gap-2 text-[1rem] font-thin text-gray-600">
                     {props.subheading.split("•").map((item, index, _array) => (
                       <span key={`subheading-${index}`}>
                         <span className="p-1">{item.trim()}</span>

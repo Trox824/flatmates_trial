@@ -13,13 +13,26 @@ interface Listing {
   description?: string;
   subheading?: string;
   availableFrom?: Date;
+  location?: string;
+  createdAt?: Date;
+  lastActive?: Date;
 }
 
 interface ListingGridProps {
   isShortlist?: boolean;
+  filter: string;
+  locationKeyword: string;
+  onResultsUpdate?: (count: number) => void;
+  onViewUpdate?: (view: number) => void;
 }
 
-const ListingGrid = ({ isShortlist = false }: ListingGridProps) => {
+const ListingGrid = ({
+  isShortlist = false,
+  filter,
+  locationKeyword,
+  onResultsUpdate,
+  onViewUpdate,
+}: ListingGridProps) => {
   const [listings, setListings] = useState<Listing[]>([]);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -31,23 +44,16 @@ const ListingGrid = ({ isShortlist = false }: ListingGridProps) => {
 
     setLoading(true);
     try {
-      const endpoint = isShortlist
-        ? "/api/favorites/index"
-        : `/api/listings?page=${page}&limit=6`;
+      // Add locationKeyword to the query string
+      const endpoint = `/api/roomFilter?page=${page}&limit=6&sort=${filter}&address=${locationKeyword}`;
 
       const response = await fetch(endpoint);
       if (!response.ok) {
         throw new Error("Failed to fetch listings");
       }
 
-      const data = (await response.json()) as {
-        favorites: Listing[];
-        listings: Listing[];
-      };
-
-      const newListings: Listing[] = isShortlist
-        ? data.favorites
-        : data.listings;
+      const data = await response.json();
+      const newListings: Listing[] = data.listings;
 
       if (newListings.length === 0) {
         setHasMore(false);
@@ -55,10 +61,16 @@ const ListingGrid = ({ isShortlist = false }: ListingGridProps) => {
       }
 
       setListings((prev) => [...prev, ...newListings]);
-      if (!isShortlist) {
-        setPage((prev) => prev + 1);
-      } else {
-        setHasMore(false);
+      setPage((prev) => prev + 1);
+
+      // Update total results
+      if (onResultsUpdate) {
+        onResultsUpdate(data.totalResults);
+      }
+
+      // Update current view count
+      if (onViewUpdate) {
+        onViewUpdate(listings.length + newListings.length);
       }
     } catch (error) {
       console.error("Error fetching listings:", error);
@@ -66,7 +78,24 @@ const ListingGrid = ({ isShortlist = false }: ListingGridProps) => {
     } finally {
       setLoading(false);
     }
-  }, [page, loading, hasMore, isShortlist]);
+  }, [
+    page,
+    loading,
+    hasMore,
+    isShortlist,
+    filter,
+    locationKeyword, // Include locationKeyword in dependency array
+    onResultsUpdate,
+    onViewUpdate,
+    listings.length,
+  ]);
+
+  useEffect(() => {
+    // Reset listings and pagination when filter changes
+    setListings([]);
+    setPage(1);
+    setHasMore(true);
+  }, [filter]);
 
   useEffect(() => {
     if (loading || !hasMore) return;
