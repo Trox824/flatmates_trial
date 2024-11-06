@@ -5,7 +5,7 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { FiMenu, FiX, FiUser } from "react-icons/fi";
 import { signOut, useSession } from "next-auth/react";
-import FilterModal from "./FilterModal";
+import FilterModal from "./RoomsFilterPage/NavbarFilterModal/FilterModal";
 import NoticeBar from "~/app/_components/home/NoticeBar";
 
 export default function Navbar() {

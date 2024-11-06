@@ -12,6 +12,7 @@ interface PageProps {
 
 export default function RoomsPage({ params }: PageProps) {
   const { city } = params;
+  const decodedCity = decodeURIComponent(city);
   const [filter, setFilter] = useState("location");
   const [totalResults, setTotalResults] = useState(0);
   const [currentView, setCurrentView] = useState(0);
@@ -29,13 +30,13 @@ export default function RoomsPage({ params }: PageProps) {
           items={[
             { label: "Home", href: "/" },
             { label: "Rooms", href: "/rooms" },
-            { label: city },
+            { label: decodedCity },
           ]}
         />
       </div>
       <div className="mx-auto max-w-[62rem]">
         <div className="py-8 text-[1.125rem] font-bold text-gray-700">
-          {city} Rooms for Rent
+          {decodedCity} Rooms for Rent
         </div>
         <FilterHeader
           onFilterChange={handleFilterChange}
@@ -45,7 +46,7 @@ export default function RoomsPage({ params }: PageProps) {
         <ListingGrid
           isShortlist={false}
           filter={filter}
-          locationKeyword={city}
+          locationKeyword={decodedCity}
           onResultsUpdate={(count: number) => setTotalResults(count)}
           onViewUpdate={(view: number) => setCurrentView(view)}
         />
