@@ -41,12 +41,12 @@ export async function GET() {
 
     return NextResponse.json(
       {
-        favorites: user.favorites.map((fav) => fav.listing),
+        favorites: user.favorites.map((favorite) => favorite.listing),
       },
       { headers },
     );
   } catch (error) {
-    console.error("Error fetching favorites:", error);
+    console.error("Error fetching Favorite:", error);
     return NextResponse.json(
       { message: "Internal server error" },
       { status: 500, headers },

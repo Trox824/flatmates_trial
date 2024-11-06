@@ -24,22 +24,19 @@ export default async function handler(
   try {
     const user = await prisma.user.findUnique({
       where: { email: session.user.email },
-      include: {
-        favorites: {
-          include: {
-            listing: true,
-          },
-        },
-      },
     });
 
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
 
-    res
-      .status(200)
-      .json({ favorites: user.favorites.map((fav) => fav.listing) });
+    const favorites = await prisma.favorite.findMany({
+      where: {
+        userId: user.id,
+      },
+    });
+
+    res.status(200).json({ favorites });
   } catch (error) {
     console.error("Error fetching favorites:", error);
     res.status(500).json({ message: "Internal server error" });

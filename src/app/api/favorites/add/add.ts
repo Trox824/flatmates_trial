@@ -38,13 +38,11 @@ export default async function handler(
       return res.status(404).json({ message: "User not found" });
     }
 
-    // Check if the favorite already exists
-    const existingFavorite = await prisma.favorite.findUnique({
+    // Check if the Favorite already exists
+    const existingFavorite = await prisma.favorite.findFirst({
       where: {
-        userId_listingId: {
-          userId: user.id,
-          listingId,
-        },
+        userId: user.id,
+        listingId,
       },
     });
 
@@ -61,7 +59,7 @@ export default async function handler(
 
     res.status(200).json({ message: "Added to favorites" });
   } catch (error) {
-    console.error("Error adding favorite:", error);
+    console.error("Error adding Favorite:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 }
