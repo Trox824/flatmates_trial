@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import TagsDisplay from "./TagsDisplay";
 import SuggestionsList from "./SuggestionsList";
@@ -19,8 +19,10 @@ export default function ModalContent({
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
-  const fetchSuggestions = debounce(async (query: unknown) => {
-    if (!query || typeof query !== "string") return setSuggestions([]);
+  // Wrapper function for debounce compatibility
+  const fetchSuggestions = debounce(async (...args: unknown[]) => {
+    const query = args[0] as string;
+    if (!query) return setSuggestions([]);
     const response = await fetch(
       `/api/autocomplete?query=${encodeURIComponent(query)}`,
     );
@@ -40,14 +42,14 @@ export default function ModalContent({
       <div className="mx-auto max-w-[90%]">
         {/* Tabs */}
         <div className="mx-auto flex max-w-[70%] rounded-md">
-          {["Rooms", "Flatmates", "Teamups"].map((tab) => (
+          {["Rooms", "Flatmates", "Teamups"].map((tab, index) => (
             <button
               key={tab}
               onClick={() => setActiveTab(tab)}
               className={`flex-1 p-3 text-center ${
                 activeTab === tab
                   ? "bg-[#2f3a4a] text-white"
-                  : "border border-[#2f3a4a] bg-white text-[#2f3a4a]"
+                  : `border border-[#2f3a4a] bg-white text-[#2f3a4a] ${index === 0 ? "border-r-0" : ""} ${index === 2 ? "border-l-0" : ""}`
               }`}
             >
               {tab}
@@ -56,38 +58,58 @@ export default function ModalContent({
         </div>
 
         {/* Search Input */}
-        <div className="mt-3">
-          <input
-            type="text"
-            placeholder="Start typing suburb, city, station or uni"
-            className={`w-full p-3 outline-none ${
-              suggestions.length > 0 && selectedTags.length === 0
-                ? "rounded-t-lg border-x border-t border-gray-800"
-                : "rounded-lg border"
+        <div className="relative mt-3">
+          <div
+            className={`flex items-center px-3 py-3 ${
+              suggestions.length > 0 && searchInput.length > 0
+                ? "rounded-t border-x border-t border-gray-800"
+                : "rounded border"
             }`}
-            autoFocus
-            value={searchInput}
-            onChange={(e) =>
-              !selectedTags.length && setSearchInput(e.target.value)
-            }
-          />
-          <TagsDisplay
-            selectedTags={selectedTags}
-            setSelectedTags={setSelectedTags}
-          />
-          <SuggestionsList
-            suggestions={suggestions}
-            onSelect={(suggestion) => {
-              setSelectedTags([...selectedTags, suggestion]);
-              setSuggestions([]);
-            }}
-          />
+          >
+            {/* Tags Display */}
+            <TagsDisplay
+              selectedTags={selectedTags}
+              setSelectedTags={setSelectedTags}
+              setSearchInput={setSearchInput}
+              setSuggestions={setSuggestions}
+            />
+            {/* Search Input */}
+            <input
+              type="text"
+              placeholder={
+                selectedTags.length > 0
+                  ? ""
+                  : "Start typing suburb, city, station or uni"
+              }
+              className="flex-grow bg-transparent p-0 text-gray-600 outline-none"
+              autoFocus
+              value={searchInput}
+              onChange={(e) =>
+                !selectedTags.length && setSearchInput(e.target.value)
+              }
+            />
+          </div>
+          {searchInput.length > 0 && (
+            <SuggestionsList
+              searchInput={searchInput}
+              suggestions={suggestions}
+              onSelect={(suggestion) => {
+                setSelectedTags((prevTags) => [...prevTags, suggestion]);
+                setSearchInput(""); // Clear the input if needed
+                setSuggestions([]); // Clear suggestions to close modal
+                // Close modal on suggestion select
+              }}
+            />
+          )}
         </div>
 
         {/* Search Button */}
         <Link
-          href={`/rooms/${searchInput || selectedTags.join(",")}`}
+          href={
+            selectedTags.length > 0 ? `/rooms/${selectedTags.join(",")}` : ""
+          }
           className="mt-3 flex w-full items-center justify-center rounded-lg bg-[rgb(0,105,119)] py-3 text-white"
+          onClick={() => setIsOpen(false)}
         >
           <span>Search</span>
         </Link>
