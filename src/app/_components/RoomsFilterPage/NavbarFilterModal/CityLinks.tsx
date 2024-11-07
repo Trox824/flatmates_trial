@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 export default function CityLinks() {
   const cities = [
@@ -9,6 +11,17 @@ export default function CityLinks() {
     "Gold Coast",
     "Adelaide",
   ];
+
+  const pathname = usePathname();
+  const [isRooms, setIsRooms] = useState(false);
+
+  useEffect(() => {
+    // Update state if the pathname includes "/rooms/"
+    setIsRooms(pathname.includes("/rooms/"));
+  }, [pathname]);
+  console.log(isRooms);
+  // If the path does not contain "/rooms/", return null
+  if (isRooms) return null;
 
   return (
     <div className="mt-4 pb-4">

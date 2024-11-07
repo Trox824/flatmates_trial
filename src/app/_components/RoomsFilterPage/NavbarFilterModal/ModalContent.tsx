@@ -4,7 +4,9 @@ import TagsDisplay from "./TagsDisplay";
 import SuggestionsList from "./SuggestionsList";
 import CityLinks from "./CityLinks";
 import { debounce } from "~/app/utils/debounce";
-
+import { useSearchParams } from "next/navigation";
+import { usePathname } from "next/navigation";
+import AdvancedFilterModal from "./advancedFilter/advancedFilterModal";
 interface ModalContentProps {
   setIsOpen: (open: boolean) => void;
   modalRef: React.RefObject<HTMLDivElement>;
@@ -14,10 +16,20 @@ export default function ModalContent({
   setIsOpen,
   modalRef,
 }: ModalContentProps) {
+  const searchParams = useSearchParams();
   const [activeTab, setActiveTab] = useState<string>("Rooms");
   const [searchInput, setSearchInput] = useState<string>("");
   const [suggestions, setSuggestions] = useState<string[]>([]);
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedTags, setSelectedTags] = useState<string[]>(() => {
+    const tagsParam = searchParams.get("tags");
+    return tagsParam ? tagsParam.split(",") : [];
+  });
+  const pathname = usePathname();
+  const [isRooms, setIsRooms] = useState(false);
+
+  useEffect(() => {
+    setIsRooms(pathname.includes("/rooms/"));
+  }, [pathname]);
 
   // Wrapper function for debounce compatibility
   const fetchSuggestions = debounce(async (...args: unknown[]) => {
@@ -37,7 +49,7 @@ export default function ModalContent({
   return (
     <div
       ref={modalRef}
-      className="absolute left-0 right-0 top-0 z-[60] rounded-lg border border-gray-200 bg-white py-7 shadow-lg"
+      className="absolute left-0 right-0 top-0 z-[60] max-h-[90vh] overflow-auto rounded-lg border border-gray-200 bg-white pt-7 shadow-lg"
     >
       <div className="mx-auto max-w-[90%]">
         {/* Tabs */}
@@ -72,6 +84,7 @@ export default function ModalContent({
               setSelectedTags={setSelectedTags}
               setSearchInput={setSearchInput}
               setSuggestions={setSuggestions}
+              setIsOpen={setIsOpen}
             />
             {/* Search Input */}
             <input
@@ -95,24 +108,31 @@ export default function ModalContent({
               suggestions={suggestions}
               onSelect={(suggestion) => {
                 setSelectedTags((prevTags) => [...prevTags, suggestion]);
-                setSearchInput(""); // Clear the input if needed
-                setSuggestions([]); // Clear suggestions to close modal
-                // Close modal on suggestion select
+                setSearchInput("");
+                setSuggestions([]);
               }}
             />
           )}
         </div>
 
         {/* Search Button */}
-        <Link
-          href={
-            selectedTags.length > 0 ? `/rooms/${selectedTags.join(",")}` : ""
-          }
-          className="mt-3 flex w-full items-center justify-center rounded-lg bg-[rgb(0,105,119)] py-3 text-white"
-          onClick={() => setIsOpen(false)}
-        >
-          <span>Search</span>
-        </Link>
+        {isRooms ? (
+          <AdvancedFilterModal />
+        ) : (
+          <Link
+            href={
+              selectedTags.length > 0
+                ? `/rooms/${selectedTags.join(",")}?tags=${selectedTags.join(",")}`
+                : ""
+            }
+            className="mt-3 flex w-full items-center justify-center rounded-lg bg-[rgb(0,105,119)] py-3 text-white"
+            onClick={() => {
+              setIsOpen(false);
+            }}
+          >
+            <span>Search</span>
+          </Link>
+        )}
 
         {/* City Links */}
         <CityLinks />

@@ -1,8 +1,11 @@
+import { useRouter, useSearchParams } from "next/navigation";
+
 interface TagsDisplayProps {
   selectedTags: string[];
   setSelectedTags: (tags: string[]) => void;
   setSearchInput: (input: string) => void;
   setSuggestions: (suggestions: string[]) => void;
+  setIsOpen: (isOpen: boolean) => void;
 }
 
 export default function TagsDisplay({
@@ -11,6 +14,28 @@ export default function TagsDisplay({
   setSearchInput,
   setSuggestions,
 }: TagsDisplayProps) {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+
+  const handleDeleteTag = (indexToRemove: number) => {
+    const updatedTags = selectedTags.filter((_, i) => i !== indexToRemove);
+    setSelectedTags(updatedTags);
+
+    // Update URL params
+    const params = new URLSearchParams(searchParams.toString());
+    if (updatedTags.length > 0) {
+      params.set("tags", updatedTags.join(","));
+    } else {
+      params.delete("tags");
+    }
+
+    // Update the URL without refreshing the page
+    router.push(`?${params.toString()}`, { scroll: false });
+
+    setSearchInput("");
+    setSuggestions([]);
+  };
+
   return (
     <div className="absolute inset-y-0 left-0 flex flex-wrap items-center gap-2 pl-3 pr-1">
       {selectedTags.map((tag, index) => (
@@ -21,12 +46,7 @@ export default function TagsDisplay({
           <span className="text-gray-500">{tag}</span>{" "}
           <button
             className="ml-2 text-gray-500"
-            onClick={() => {
-              const updatedTags = selectedTags.filter((_, i) => i !== index);
-              setSelectedTags(updatedTags);
-              setSearchInput("");
-              setSuggestions([]);
-            }}
+            onClick={() => handleDeleteTag(index)}
           >
             <svg viewBox="0 0 16 16" className="h-3 w-3 text-gray-500">
               <path
