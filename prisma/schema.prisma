@@ -35,6 +35,7 @@ model Listing {
   updatedAt        DateTime  @updatedAt
   weeklyRent       Int
   favorites Favorite[]
+  rooms            Room[]
 }
 
 model PersonListing {
@@ -66,14 +67,14 @@ model Room {
   name             String
   type             String
   location         String?
-  oneLiner         String?
   description      String?
   aboutFlatmate    String?
   noBeds           Int
   noBathrooms      Int
   noFlatmates      Int
+  author           String?
   propertyFeatures String[]
-  accpetingTags    String[]
+  acceptingTags    String[]
   inspectAvailable Boolean
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
@@ -81,13 +82,21 @@ model Room {
   bond             Int?
   roomType         String?
   stayLength       Int?
+  roomFeatures     String[]
   furnished        String?
   internet         String?
+  online           String?
+  authorAvatar     String?
+  responseRate     String?
   parking          String?
   bathRoom         String?
   bills            String?
   acceptedPeople   String?
+  images           String[]
+  listingId        String?
+  listing          Listing?  @relation(fields: [listingId], references: [id])
 }
+
 
 model FeatureListing {
   name    String @id

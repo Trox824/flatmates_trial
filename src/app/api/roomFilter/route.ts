@@ -1,5 +1,5 @@
 import { NextResponse } from "next/dist/server/web/spec-extension/response";
-import { PrismaClient, Prisma } from "@prisma/client";
+import { PrismaClient, Prisma, Listing } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
@@ -45,24 +45,38 @@ export async function GET(request: Request) {
       : {};
 
     // Fetch room listings with pagination and soft address filter
-    const rooms = await prisma.listing.findMany({
-      where: {
-        type: "room",
-        ...addressFilter, // Apply the address filter if provided
-      },
-      orderBy,
-      skip: offset,
-      take: limit,
-    });
+    const rooms = await prisma.$queryRaw<Listing[]>`
+      SELECT l.*, r.images
+      FROM "Listing" l
+      JOIN "Room" r ON r.id = l.id
+      WHERE l.type = 'room'
+      ${addressKeyword ? Prisma.sql`AND l.address ILIKE ${`%${addressKeyword}%`}` : Prisma.empty}
+      ${
+        sort === "newest"
+          ? Prisma.sql`ORDER BY l."createdAt" DESC`
+          : sort === "rentHighToLow"
+            ? Prisma.sql`ORDER BY l.price DESC`
+            : sort === "rentLowToHigh"
+              ? Prisma.sql`ORDER BY l.price ASC`
+              : sort === "earliestAvailable"
+                ? Prisma.sql`ORDER BY l."availableFrom" ASC`
+                : sort === "recentlyActive"
+                  ? Prisma.sql`ORDER BY l."updatedAt" DESC`
+                  : Prisma.sql`ORDER BY l.address ASC`
+      }
+      LIMIT ${limit} OFFSET ${offset};
+    `;
 
-    // Get total count of listings to calculate total pages if needed
-    const totalRooms = await prisma.listing.count({
-      where: {
-        type: "room",
-        ...addressFilter,
-      },
-    });
-    const totalResults = totalRooms;
+    // Get total count of listings
+    const [{ count }] = await prisma.$queryRaw<[{ count: number }]>`
+      SELECT COUNT(*)::integer as count
+      FROM "Listing" l
+      JOIN "Room" r ON r.id = l.id
+      WHERE l.type = 'room'
+      ${addressKeyword ? Prisma.sql`AND l.address ILIKE ${`%${addressKeyword}%`}` : Prisma.empty}
+    `;
+
+    const totalResults = count;
 
     return NextResponse.json({
       listings: rooms,

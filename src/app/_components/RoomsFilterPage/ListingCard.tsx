@@ -10,6 +10,8 @@ interface BaseListingProps {
   heading: string;
   price: number;
   isShortlist?: boolean;
+  billsIncluded?: boolean;
+  images?: string[];
 }
 
 export interface PersonListingProps extends BaseListingProps {
@@ -38,6 +40,20 @@ const ListingCard: FC<ListingCardProps> = (props) => {
     props.isShortlist ?? false,
   );
   const [loading, setLoading] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  const images = props.images || [housemate, housemate];
+
+  const nextImage = () => {
+    setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length);
+  };
+
+  const prevImage = () => {
+    setCurrentImageIndex((prevIndex) =>
+      prevIndex === 0 ? images.length - 1 : prevIndex - 1,
+    );
+  };
+
   console.log(props.isShortlist);
 
   useEffect(() => {
@@ -110,13 +126,73 @@ const ListingCard: FC<ListingCardProps> = (props) => {
     <Link href={`/${props.id}`} className="block">
       <div className="cursor-pointer overflow-hidden rounded-2xl bg-white shadow-xl duration-200">
         {/* Image Container */}
-        <div className="relative aspect-[16/9] w-full rounded-xl shadow-xl">
+        <div className="group relative aspect-[16/9] w-full rounded-xl shadow-xl">
           <Image
-            src={housemate}
+            src={images[currentImageIndex] || housemate}
             alt={props.heading}
             fill
             className="object-cover"
           />
+
+          {/* Add image navigation - only show if multiple images */}
+          {images.length > 1 && (
+            <>
+              {/* Previous button */}
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  prevImage();
+                }}
+                className={`absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-white p-1.5 transition-opacity duration-200 hover:bg-gray-100 ${currentImageIndex === 0 ? "pointer-events-none opacity-0" : "opacity-0 group-hover:opacity-100"}`}
+                disabled={currentImageIndex === 0}
+              >
+                <svg
+                  className="h-10 w-10 transition-colors duration-200"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+              </button>
+
+              {/* Next button */}
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  nextImage();
+                }}
+                className={`absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-white p-1.5 transition-opacity duration-200 hover:bg-gray-100 ${currentImageIndex === images.length - 1 ? "pointer-events-none opacity-0" : "opacity-0 group-hover:opacity-100"}`}
+                disabled={currentImageIndex === images.length - 1}
+              >
+                <svg
+                  className="h-10 w-10 transition-colors duration-200"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </button>
+            </>
+          )}
+
+          {/* Image count indicator */}
+          <div className="absolute right-2 top-2 rounded-xl bg-gray-500 px-2 py-1 text-xs text-white opacity-0 transition-opacity duration-200 group-hover:opacity-90">
+            {currentImageIndex + 1}/{images.length}
+          </div>
+
+          {/* Existing favorite button */}
           <button
             className={`absolute bottom-3 right-3 rounded-full p-1.5 ${
               isFavorite
@@ -150,7 +226,14 @@ const ListingCard: FC<ListingCardProps> = (props) => {
         <div className="px-6 py-4">
           <div className="mb-2 flex items-start justify-between">
             <h3 className="text-[1.25rem] font-semibold">
-              {props.type === "room" ? `$${props.price}/week` : props.heading}
+              {props.type === "room" ? (
+                <>
+                  ${props.price}/week
+                  {props.billsIncluded && <span className=""> inc. bills</span>}
+                </>
+              ) : (
+                props.heading
+              )}
             </h3>
             <button className="rounded border border-gray-700 px-3 text-xs hover:bg-gray-50">
               Free to message

@@ -13,6 +13,8 @@ interface Listing {
   description?: string;
   subheading?: string;
   availableFrom?: Date;
+  billsIncluded?: boolean;
+  images?: string[];
 }
 
 interface ListingGridProps {
@@ -105,6 +107,8 @@ const ListingGrid = ({ isShortlist = false }: ListingGridProps) => {
             key={listing.id}
             {...listing}
             isShortlist={isShortlist}
+            billsIncluded={listing.billsIncluded}
+            images={listing.images}
           />
         ))}
         {hasMore && (
@@ -116,8 +120,15 @@ const ListingGrid = ({ isShortlist = false }: ListingGridProps) => {
         )}
       </div>
 
-      {loading && <p className="mt-4 text-center">Loading...</p>}
-      {!hasMore && <p className="mt-4 text-center">No more listings.</p>}
+      {loading && (
+        <div className="mt-4 text-center">
+          <div className="loader"></div>
+          <p className="text-gray-700">Loading...</p>
+        </div>
+      )}
+      {!hasMore && (
+        <p className="mt-4 text-center text-gray-500">No more listings.</p>
+      )}
     </div>
   );
 };

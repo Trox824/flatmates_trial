@@ -1,6 +1,6 @@
 import { type FC, useState, useEffect } from "react";
 import Image from "next/image";
-import housemate from "../../../../public/images/housemate.png";
+import housemate from "../../../../public/images/skeleton.png";
 import Link from "next/link";
 import { useSession } from "next-auth/react";
 
@@ -10,6 +10,8 @@ interface BaseListingProps {
   heading: string;
   price: number;
   isShortlist?: boolean;
+  billsIncluded?: boolean;
+  images?: string[];
 }
 
 export interface PersonListingProps extends BaseListingProps {
@@ -38,6 +40,20 @@ const ListingCard: FC<ListingCardProps> = (props) => {
     props.isShortlist ?? false,
   );
   const [loading, setLoading] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  const images = props.images || [housemate, housemate]; // Duplicate the image for testing
+
+  const nextImage = () => {
+    setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length);
+  };
+
+  const prevImage = () => {
+    setCurrentImageIndex((prevIndex) =>
+      prevIndex === 0 ? images.length - 1 : prevIndex - 1,
+    );
+  };
+
   console.log(props.isShortlist);
 
   useEffect(() => {
@@ -110,13 +126,74 @@ const ListingCard: FC<ListingCardProps> = (props) => {
     <Link href={`/${props.id}`} className="block">
       <div className="cursor-pointer overflow-hidden bg-white transition-shadow duration-200">
         {/* Image Container */}
-        <div className="relative aspect-[4/3] w-full">
+        <div className="group relative aspect-[4/3] w-full">
           <Image
-            src={housemate}
+            src={images[currentImageIndex] || housemate}
             alt={props.heading}
             fill
             className="rounded-2xl object-cover"
           />
+
+          {/* Add back the navigation buttons */}
+          {images.length > 1 && (
+            <>
+              {/* Previous button */}
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  prevImage();
+                }}
+                className={`absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-white p-1.5 transition-opacity duration-200 hover:bg-gray-100 ${currentImageIndex === 0 ? "pointer-events-none opacity-0" : "opacity-0 group-hover:opacity-100"}`}
+                disabled={currentImageIndex === 0}
+              >
+                <svg
+                  className="h-10 w-10 transition-colors duration-200"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+              </button>
+
+              {/* Next button */}
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  nextImage();
+                }}
+                className={`absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-white p-1.5 transition-opacity duration-200 hover:bg-gray-100 ${currentImageIndex === images.length - 1 ? "pointer-events-none opacity-0" : "opacity-0 group-hover:opacity-100"}`}
+                disabled={currentImageIndex === images.length - 1}
+              >
+                <svg
+                  className="h-10 w-10 transition-colors duration-200"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={1.5}
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </button>
+            </>
+          )}
+
+          {/* Image count indicator */}
+          <div className="absolute right-2 top-2 rounded-xl bg-gray-500 px-2 py-1 text-xs text-white opacity-0 transition-opacity duration-200 group-hover:opacity-90">
+            {currentImageIndex + 1}/{images.length}
+          </div>
+
           <button
             className={`absolute bottom-3 right-3 rounded-full p-1.5 ${
               isFavorite
@@ -130,11 +207,11 @@ const ListingCard: FC<ListingCardProps> = (props) => {
             disabled={loading}
           >
             <svg
-              xmlns="http://www.w3.org/2000/svg"
               className="h-7 w-7 transition-colors duration-200"
-              fill={isFavorite ? "white" : "rgba(0,0,0,0.5)"}
-              stroke={"white"}
               viewBox="0 0 24 24"
+              fill={isFavorite ? "white" : "rgba(0,0,0,0.5)"}
+              stroke="white"
+              xmlns="http://www.w3.org/2000/svg"
             >
               <path
                 strokeLinecap="round"
@@ -149,8 +226,9 @@ const ListingCard: FC<ListingCardProps> = (props) => {
         {/* Content */}
         <div className="pt-4">
           <div className="mb-1 flex items-start justify-between">
-            <h3 className="text-lg font-medium">
+            <h3 className="text-lg font-semibold text-gray-700">
               {props.type === "room" ? `$${props.price}/week` : props.heading}
+              {props.billsIncluded && <span className=""> inc. bills</span>}
             </h3>
             <button className="rounded border border-gray-700 px-3 py-1 text-xs hover:bg-gray-50">
               Free to message

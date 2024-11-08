@@ -1,7 +1,23 @@
-const PropertyAside = () => {
+import { useState } from "react";
+
+interface PropertyAsideProps {
+  author: string;
+  online: string;
+  responseRate: string;
+  authorAvatar: string | null;
+}
+
+const PropertyAside = ({
+  author,
+  online,
+  responseRate,
+  authorAvatar,
+}: PropertyAsideProps) => {
+  const [message, setMessage] = useState("");
+
+  // author now holds the author name directly
   return (
     <aside className="w-[32%] pt-7">
-      {/* Message Section */}
       <span id="contact"></span>
       <div className="relative mb-5 rounded-[12px] border border-[#e3e4e5] bg-[#f8f8f9] p-6 text-center">
         <div className="mb-4 flex items-center justify-center text-center">
@@ -9,20 +25,23 @@ const PropertyAside = () => {
             <div className="person-dropzone img-container">
               <img
                 className="h-[88px] w-[88px] rounded-full border-2 border-white"
-                src="https://flatmates-res.cloudinary.com/image/upload/c_fill,dpr_2.0,f_auto,g_faces,h_132,q_auto,w_132/v1/user_profile/jrd0drlon4x4tokpdcew"
+                src={
+                  authorAvatar ??
+                  "https://flatmates-res.cloudinary.com/image/asset/c_fill,f_auto,g_center,h_132,q_auto,w_132/person-443bab81a0cbdee404cdd629831ccd89.png"
+                }
                 alt=""
               />
             </div>
           </div>
           <div>
             <div className="text-[18px] font-semibold text-[#2e3a4b]">
-              Message Handy
+              {author}
             </div>
-            <div className="text-[0.75rem] text-[#6d7580]">Online Today</div>
+            <div className="text-[0.75rem] text-[#6d7580]">{online}</div>
             <div className="mt-2.5 inline-block rounded-[14.5px] bg-[#eaebec] p-1 px-3 text-[0.875rem] text-[#2f3a4a]">
               <div>
                 Response rate:
-                <span>100%</span>
+                <span>{responseRate}</span>
                 <button
                   type="button"
                   aria-label="More information"
@@ -51,8 +70,12 @@ const PropertyAside = () => {
               placeholder="Type your message…"
               aria-label="Message area"
               maxLength={256}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
             />
-            <p className="text-left text-sm text-gray-600">0/256 characters</p>
+            <p className="text-left text-sm text-gray-600">
+              {message.length}/256 characters
+            </p>
             <div>
               <button
                 type="submit"
@@ -69,22 +92,22 @@ const PropertyAside = () => {
             type="button"
             className="w-full rounded-md border border-black bg-white p-3 text-[1rem] font-medium text-gray-700"
           >
-            Login to show Handynumber
+            Login to show {author ? author.replace("Message ", "") : "unknown"}{" "}
+            number
           </button>
         </div>
       </div>
 
-      {/* Social Media Section */}
       <div className="mb-2 rounded-[12px] border border-[#eaebec] p-[1.5rem] pt-[2rem] text-center">
         <h3 className="m-0 text-[16px] font-medium text-[#333f48]">
-          Handy has no verified social media
+          {author ? author.replace("Message ", "") : "unknown"} has no verified
+          social media
         </h3>
         <div className="my-3.5 flex h-[42px] items-center justify-center">
           {/* Social media icons here */}
         </div>
       </div>
 
-      {/* Report Button */}
       <div>
         <button
           type="button"
@@ -104,7 +127,6 @@ const PropertyAside = () => {
         </button>
       </div>
 
-      {/* Tips Section */}
       <div className="rounded-[12px]">
         <h3 className="font-base mb-4 text-[17px] text-[#333f48] text-gray-500">
           Tips for securing this room

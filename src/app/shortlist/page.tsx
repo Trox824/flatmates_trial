@@ -1,6 +1,6 @@
 "use client";
 
-import { Breadcrumb } from "~/app/_components/breadcrumb";
+import { Breadcrumb } from "~/app/_components/propertiesContent/breadcrumb";
 import ListingGrid from "~/app/_components/home/ListingGrid";
 
 interface PageProps {
