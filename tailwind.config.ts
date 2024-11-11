@@ -8,6 +8,9 @@ export default {
       fontFamily: {
         sans: ["var(--font-geist-sans)", ...fontFamily.sans],
       },
+      screens: {
+        "custom-lg": "902px", // Custom breakpoint at 901px
+      },
     },
   },
   plugins: [],

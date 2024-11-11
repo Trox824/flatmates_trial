@@ -35,7 +35,7 @@ export default function Navbar() {
               width={230}
               height={70}
               priority
-              className="mr-7 object-contain"
+              className="mr-7 w-[160px] object-contain md:w-[180px] lg:w-[230px]"
             />
           </Link>
 

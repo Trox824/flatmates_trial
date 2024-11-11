@@ -56,7 +56,9 @@ const LoginPage: FC = () => {
     }
   };
 
-  const handleSocialLogin = async (provider: "facebook" | "apple") => {
+  const handleSocialLogin = async (
+    provider: "facebook" | "google" | "apple",
+  ) => {
     try {
       const result = await signIn(provider, {
         callbackUrl: "/",
@@ -161,12 +163,15 @@ const LoginPage: FC = () => {
                 </button>
 
                 <button
-                  onClick={() => handleSocialLogin("apple")}
-                  className="duration-250 relative mx-auto mb-2 mt-6 mt-[16px] block min-h-[3rem] w-full min-w-[190px] rounded-md border border-[#000] bg-[#000] p-3 px-6 text-[1rem] font-semibold leading-[1.5rem] transition"
+                  onClick={() => handleSocialLogin("google")}
+                  className="duration-250 relative mx-auto mb-2 mt-6 mt-[16px] block min-h-[3rem] w-full min-w-[190px] rounded-md border border-gray-200 bg-red-500 p-3 px-6 text-[1rem] font-semibold leading-[1.5rem] transition hover:bg-red-600"
                   type="button"
                 >
-                  <span className="text-[16px] font-semibold text-white">
-                    Sign in with Apple
+                  <span className="flex justify-center">
+                    <span className="mr-1 flex items-center justify-center"></span>
+                    <span className="ml-1 text-[16px] font-semibold text-white">
+                      Sign in with email
+                    </span>
                   </span>
                 </button>
               </div>

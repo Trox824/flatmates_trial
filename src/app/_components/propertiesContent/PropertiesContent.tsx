@@ -44,7 +44,7 @@ const PropertiesContent = ({
   address2,
 }: PropertiesContentProps) => {
   return (
-    <div className="w-[68%] p-2 pr-[56px] pt-7">
+    <div className="w-[100%] p-2 pt-7 lg:w-[68%] lg:pr-[56px]">
       {/* Header */}
       <div className="mb-6">
         <div
@@ -272,13 +272,13 @@ const PropertiesContent = ({
             </h3>
           </div>
         </header>
-        <main className="mt-4 flex items-center">
+        <main className="mt-4 flex flex-col items-start md:flex-row">
           <p className="my-auto mr-8 block w-[416px] text-[1rem] leading-[1.375rem] text-[#2f3a4a]">
             To inspect this room, send a message introducing yourself and ask to
             see their inspection times.
           </p>
           <button
-            className="relative flex min-h-[3rem] flex-shrink-0 items-center justify-center rounded-lg bg-[#006977] p-3.5 font-semibold text-[#fff]"
+            className="relative mt-2 flex min-h-[3rem] flex-shrink-0 items-center justify-center rounded-lg bg-[#006977] p-3.5 font-semibold text-[#fff]"
             style={{ fontSize: "1rem", lineHeight: "1.5rem" }}
           >
             Request Inspection
@@ -491,7 +491,7 @@ const PropertiesContent = ({
                   <svg width="24" height="24" viewBox="0 0 24 24">
                     <g fill="none" fillRule="evenodd">
                       <path
-                        d="M21.108 23H20v-3h3v1.195C23 22.224 22.187 23 21.108 23zM1 21.195V20h3v3H2.737C1.714 23 1 22.258 1 21.195zM20 11h3V8h-3v3zm0 4h3v-3h-3v3zm0 4h3v-3h-3v3zm-5 0h4v-3h-4v3zm0 4h4v-3h-4v3zm-5 0h4v-3h-4v3zm-5 0h4v-3H5v3zm0-4h4v-3H5v3zm-4 0h3v-3H1v3zm0-4h3v-3H1v3zm0-4h3V8H1v3zm4 0h4V8H5v3zm5 0h4V8h-4v3zm5 0h4V8h-4v3zm0 4h4v-3h-4v3zM5 15h4V8H5v3zm5 4h4V8h-4v3zm0-4h4V8h-4v3zM2.737 1h18.37C22.188 1 23 1.759 23 2.765V7H1V2.765C1 1.709 1.698 1 2.737 1zm18.37-1H2.738C1.15 0 0 1.163 0 2.765v18.43C0 22.82 1.15 24 2.737 24h18.37C22.73 24 24 22.768 24 21.195V2.765C24 1.188 22.757 0 21.108 0z"
+                        d="M21.108 23H20v-3h3v1.195C23 22.224 22.187 23 21.108 23zM1 21.195V20h3v3H2.737C1.714 23 1 22.258 1 21.195zM20 11h3V8h-3v3zm0 4h3v-3h-3v3zm0 4h3v-3h-3v3zm-5 0h4v-3h-4v3zm0 4h4v-3h-4v3zm-5 0h4v-3H5v3zm0-4h4v-3H5v3zm-4 0h3v-3H1v3zm0-4h3v-3H1v3zm0-4h3V8H1v3zm4 0h4V8H5v3zm5 0h4V8h-4v3zm5 0h4V8h-4v3zm0 4h4v-3h-4v3zM5 15h4V8H5v3zm5 4h4V8h-4v3zm0-4h4V8h-4v3zM2.737 1h18.37C22.188 1 23 1.759 23 2.765V7H1V2.765C1 1.709 1.698 1 2.737 1zm18.37-1H2.738C1.15 0 0 1.163 0 2.765v18.43C0 22.82 1.15 24 2.737 24h18.37C22.73 24 24 22.768 24 21.195V2.765C24 1.188 22.757 0 21.108 0z"
                         fill="#2E3A4B"
                       ></path>
                       <path

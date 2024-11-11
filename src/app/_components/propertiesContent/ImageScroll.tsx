@@ -7,7 +7,35 @@ interface ImageScrollProps {
 
 export default function ImageScroll({ imagePaths }: ImageScrollProps) {
   const [scrollIndex, setScrollIndex] = useState(0);
+  const [selectedImageIndex, setSelectedImageIndex] = useState<number | null>(
+    null,
+  );
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  // Helper to get selected image path
+  const selectedImage =
+    selectedImageIndex !== null ? imagePaths[selectedImageIndex] : null;
+
+  // Modal navigation functions
+  const showPreviousImage = () => {
+    if (selectedImageIndex !== null && selectedImageIndex > 0) {
+      setSelectedImageIndex(selectedImageIndex - 1);
+    }
+  };
+
+  const showNextImage = () => {
+    if (
+      selectedImageIndex !== null &&
+      selectedImageIndex < imagePaths.length - 1
+    ) {
+      setSelectedImageIndex(selectedImageIndex + 1);
+    }
+  };
+
+  // Update image click handler
+  const handleImageClick = (index: number) => {
+    setSelectedImageIndex(index);
+  };
 
   // If imagePaths is empty, return skeleton image with buttons
   if (!imagePaths.length) {
@@ -82,7 +110,7 @@ export default function ImageScroll({ imagePaths }: ImageScrollProps) {
   };
 
   const scrollRight = () => {
-    if (scrollIndex < imagePaths.length - 3) {
+    if (scrollIndex < imagePaths.length - Math.min(3, imagePaths.length)) {
       setScrollIndex(scrollIndex + 1);
     }
   };
@@ -150,22 +178,33 @@ export default function ImageScroll({ imagePaths }: ImageScrollProps) {
           <div
             ref={scrollContainerRef}
             className="flex gap-x-2 transition-transform duration-300"
-            style={{ transform: `translateX(-${scrollIndex * (100 / 3)}%)` }}
+            style={{
+              transform: `translateX(-${scrollIndex * (100 / Math.min(3, imagePaths.length))}%)`,
+              width:
+                imagePaths.length < 3
+                  ? `${(100 * imagePaths.length) / Math.min(3, imagePaths.length)}%`
+                  : "100%",
+            }}
           >
             {imagePaths.map((path, index) => (
-              <div key={index} className="w-1/3 flex-none">
+              <div
+                key={index}
+                className="flex-none cursor-pointer"
+                style={{ width: `${100 / Math.min(3, imagePaths.length)}%` }}
+                onClick={() => handleImageClick(index)}
+              >
                 <Image
                   src={path}
                   alt={`Image ${index + 1}`}
                   width={416}
                   height={336}
-                  className="h-[21rem] w-[26rem] object-cover"
+                  className="h-[21rem] w-full object-cover"
                 />
               </div>
             ))}
           </div>
         </div>
-        {scrollIndex < imagePaths.length - 3 && (
+        {scrollIndex < imagePaths.length - Math.min(3, imagePaths.length) && (
           <button
             onClick={scrollRight}
             className="absolute top-1/2 z-10 flex h-14 w-14 -translate-y-1/2 items-center justify-center rounded-full bg-white bg-white/90 opacity-80 shadow-2xl drop-shadow-[0_0_3px_rgba(0,0,0,0.6)] transition duration-100 hover:opacity-100"
@@ -175,6 +214,93 @@ export default function ImageScroll({ imagePaths }: ImageScrollProps) {
           </button>
         )}
       </div>
+
+      {/* Updated Modal with Navigation */}
+      {selectedImage && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="bg-opacity-97 absolute inset-0 bg-gray-800" />
+          <div className="relative z-10 flex items-center justify-center">
+            {/* Main Image */}
+            <div className="relative max-h-[90vh] max-w-[90vw]">
+              <Image
+                src={selectedImage}
+                alt="Large view"
+                width={1200}
+                height={800}
+                className="max-h-[90vh] w-auto object-contain"
+              />
+              {/* Previous Button */}
+              {selectedImageIndex !== null && selectedImageIndex > 0 && (
+                <button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    showPreviousImage();
+                  }}
+                  className="absolute left-[-4rem] top-1/2 z-20 flex h-14 w-14 -translate-y-1/2 transform items-center justify-center rounded-full bg-white bg-opacity-90 text-gray-800 shadow-lg transition hover:bg-opacity-100"
+                >
+                  <svg
+                    className="h-6 w-6"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M15 19l-7-7 7-7"
+                    />
+                  </svg>
+                </button>
+              )}
+
+              {/* Next Button */}
+              {selectedImageIndex !== null &&
+                selectedImageIndex < imagePaths.length - 1 && (
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      showNextImage();
+                    }}
+                    className="absolute right-[-4rem] top-1/2 z-20 flex h-14 w-14 -translate-y-1/2 transform items-center justify-center rounded-full bg-white bg-opacity-90 text-gray-800 shadow-lg transition hover:bg-opacity-100"
+                  >
+                    <svg
+                      className="h-6 w-6"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M9 5l7 7-7 7"
+                      />
+                    </svg>
+                  </button>
+                )}
+            </div>
+
+            {/* Close Button */}
+            <button
+              className="absolute -right-12 -top-12 rounded-full bg-white p-2 hover:bg-gray-100"
+              onClick={() => setSelectedImageIndex(null)}
+            >
+              <svg
+                className="h-6 w-6 text-gray-500"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth="2"
+                viewBox="0 0 24 24"
+                stroke="currentColor"
+              >
+                <path d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

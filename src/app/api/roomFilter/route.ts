@@ -9,6 +9,12 @@ export async function GET(request: Request) {
   const limit = parseInt(url.searchParams.get("limit") ?? "12");
   const sort = url.searchParams.get("sort") ?? "address"; // Default sort by address
   const addressKeyword = url.searchParams.get("address") ?? ""; // Get address filter keyword
+  const date = url.searchParams.get("date"); // New date parameter
+  const stayLength = url.searchParams.get("stayLength"); // New stay length parameter
+  const rentPerWeek = url.searchParams.get("rentPerWeek");
+  const accommodationType = url.searchParams.get("accommodationType");
+  const household = url.searchParams.get("household");
+  const bedroomAvailable = url.searchParams.get("bedroomAvailable");
 
   const offset = (page - 1) * limit;
 
@@ -32,51 +38,41 @@ export async function GET(request: Request) {
       case "recentlyActive":
         orderBy = { updatedAt: "desc" };
         break;
+      // Add new sort options based on rentPerWeek or others if needed
     }
 
     // Build the filtering condition
-    const addressFilter = addressKeyword
-      ? ({
-          address: {
+    const filters: Prisma.ListingWhereInput = {
+      address: addressKeyword
+        ? {
             contains: addressKeyword,
             mode: "insensitive",
-          },
-        } as Prisma.ListingWhereInput) // Explicitly typing the filter condition
-      : {};
+          }
+        : undefined,
+      availableFrom: date
+        ? {
+            gte: new Date(date),
+          }
+        : undefined,
+      price: rentPerWeek
+        ? {
+            equals: parseFloat(rentPerWeek),
+          }
+        : undefined,
+    };
 
-    // Fetch room listings with pagination and soft address filter
-    const rooms = await prisma.$queryRaw<Listing[]>`
-      SELECT l.*, r.images
-      FROM "Listing" l
-      JOIN "Room" r ON r.id = l.id
-      WHERE l.type = 'room'
-      ${addressKeyword ? Prisma.sql`AND l.address ILIKE ${`%${addressKeyword}%`}` : Prisma.empty}
-      ${
-        sort === "newest"
-          ? Prisma.sql`ORDER BY l."createdAt" DESC`
-          : sort === "rentHighToLow"
-            ? Prisma.sql`ORDER BY l.price DESC`
-            : sort === "rentLowToHigh"
-              ? Prisma.sql`ORDER BY l.price ASC`
-              : sort === "earliestAvailable"
-                ? Prisma.sql`ORDER BY l."availableFrom" ASC`
-                : sort === "recentlyActive"
-                  ? Prisma.sql`ORDER BY l."updatedAt" DESC`
-                  : Prisma.sql`ORDER BY l.address ASC`
-      }
-      LIMIT ${limit} OFFSET ${offset};
-    `;
+    // Fetch room listings with pagination and filters
+    const rooms = await prisma.listing.findMany({
+      where: filters,
+      orderBy: orderBy,
+      skip: offset,
+      take: limit,
+    });
 
     // Get total count of listings
-    const [{ count }] = await prisma.$queryRaw<[{ count: number }]>`
-      SELECT COUNT(*)::integer as count
-      FROM "Listing" l
-      JOIN "Room" r ON r.id = l.id
-      WHERE l.type = 'room'
-      ${addressKeyword ? Prisma.sql`AND l.address ILIKE ${`%${addressKeyword}%`}` : Prisma.empty}
-    `;
-
-    const totalResults = count;
+    const totalResults = await prisma.listing.count({
+      where: filters,
+    });
 
     return NextResponse.json({
       listings: rooms,

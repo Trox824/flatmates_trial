@@ -118,8 +118,11 @@ export default function PersonPage({ params }: PageProps) {
       <div className="bg-[#f4f5f5] p-2">
         <div className="m-auto block max-w-[1200px] px-[3%]">
           <div className="flex flex-row justify-center gap-5">
-            <h4 className="mb-0 inline-block w-auto align-middle text-[1rem] font-semibold leading-[2rem] text-[#2f3a4a]">
+            <h4 className="mb-0 inline-block hidden w-auto align-middle text-[1rem] font-semibold leading-[2rem] text-[#2f3a4a] lg:block">
               Get started with a FREE listing
+            </h4>
+            <h4 className="mb-0 inline-block w-auto align-middle text-[1rem] font-semibold leading-[2rem] text-[#2f3a4a] lg:hidden">
+              Get started
             </h4>
             <div className="flex justify-center gap-2">
               <a

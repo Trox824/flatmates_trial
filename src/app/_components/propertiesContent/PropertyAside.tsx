@@ -17,7 +17,7 @@ const PropertyAside = ({
 
   // author now holds the author name directly
   return (
-    <aside className="w-[32%] pt-7">
+    <aside className="hidden w-[32%] pt-7 lg:block">
       <span id="contact"></span>
       <div className="relative mb-5 rounded-[12px] border border-[#e3e4e5] bg-[#f8f8f9] p-6 text-center">
         <div className="mb-4 flex items-center justify-center text-center">

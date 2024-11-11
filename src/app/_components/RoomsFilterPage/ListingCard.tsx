@@ -42,7 +42,18 @@ const ListingCard: FC<ListingCardProps> = (props) => {
   const [loading, setLoading] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  const images = props.images || [housemate, housemate];
+  // Normalize image paths
+  const images = props.images
+    ? props.images.map((img) => {
+        if (typeof img === "string") {
+          if (!img.startsWith("http") && !img.startsWith("/")) {
+            return "/" + img;
+          }
+          return img;
+        }
+        return img;
+      })
+    : [housemate, housemate]; // Default images
 
   const nextImage = () => {
     setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length);
@@ -53,8 +64,6 @@ const ListingCard: FC<ListingCardProps> = (props) => {
       prevIndex === 0 ? images.length - 1 : prevIndex - 1,
     );
   };
-
-  console.log(props.isShortlist);
 
   useEffect(() => {
     if (session?.user?.email) {
@@ -125,16 +134,27 @@ const ListingCard: FC<ListingCardProps> = (props) => {
   return (
     <Link href={`/${props.id}`} className="block">
       <div className="cursor-pointer overflow-hidden rounded-2xl bg-white shadow-xl duration-200">
-        {/* Image Container */}
-        <div className="group relative aspect-[16/9] w-full rounded-xl shadow-xl">
-          <Image
-            src={images[currentImageIndex] || housemate}
-            alt={props.heading}
-            fill
-            className="object-cover"
-          />
+        {/* Image Container with Sliding Logic */}
+        <div className="group relative aspect-[16/9] w-full overflow-hidden">
+          <div
+            className="flex transition-transform duration-500 ease-in-out"
+            style={{ transform: `translateX(-${currentImageIndex * 100}%)` }}
+          >
+            {images.map((imgSrc, index) => (
+              <div key={index} className="relative w-full flex-shrink-0">
+                <Image
+                  src={imgSrc}
+                  alt={props.heading}
+                  width={400}
+                  height={300}
+                  className="h-full w-full object-cover"
+                  loading="lazy"
+                />
+              </div>
+            ))}
+          </div>
 
-          {/* Add image navigation - only show if multiple images */}
+          {/* Navigation Buttons */}
           {images.length > 1 && (
             <>
               {/* Previous button */}
@@ -143,11 +163,15 @@ const ListingCard: FC<ListingCardProps> = (props) => {
                   e.preventDefault();
                   prevImage();
                 }}
-                className={`absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-white p-1.5 transition-opacity duration-200 hover:bg-gray-100 ${currentImageIndex === 0 ? "pointer-events-none opacity-0" : "opacity-0 group-hover:opacity-100"}`}
-                disabled={currentImageIndex === 0}
+                className={`absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-white p-1.5 transition-opacity duration-200 hover:bg-gray-100 ${
+                  images.length === 1 || currentImageIndex === 0
+                    ? "hidden"
+                    : "opacity-0 group-hover:opacity-100"
+                }`}
+                disabled={images.length <= 1 || currentImageIndex === 0}
               >
                 <svg
-                  className="h-10 w-10 transition-colors duration-200"
+                  className="h-10 w-10 text-gray-700"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -167,11 +191,17 @@ const ListingCard: FC<ListingCardProps> = (props) => {
                   e.preventDefault();
                   nextImage();
                 }}
-                className={`absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-white p-1.5 transition-opacity duration-200 hover:bg-gray-100 ${currentImageIndex === images.length - 1 ? "pointer-events-none opacity-0" : "opacity-0 group-hover:opacity-100"}`}
-                disabled={currentImageIndex === images.length - 1}
+                className={`absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-white p-1.5 transition-opacity duration-200 hover:bg-gray-100 ${
+                  images.length === 1 || currentImageIndex === images.length - 1
+                    ? "hidden"
+                    : "opacity-0 group-hover:opacity-100"
+                }`}
+                disabled={
+                  images.length <= 1 || currentImageIndex === images.length - 1
+                }
               >
                 <svg
-                  className="h-10 w-10 transition-colors duration-200"
+                  className="h-10 w-10 text-gray-700"
                   viewBox="0 0 24 24"
                   fill="none"
                   stroke="currentColor"
@@ -192,7 +222,7 @@ const ListingCard: FC<ListingCardProps> = (props) => {
             {currentImageIndex + 1}/{images.length}
           </div>
 
-          {/* Existing favorite button */}
+          {/* Favorite Button */}
           <button
             className={`absolute bottom-3 right-3 rounded-full p-1.5 ${
               isFavorite
