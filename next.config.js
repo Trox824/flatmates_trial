@@ -13,7 +13,13 @@ const config = {
       "scontent.xx.fbcdn.net",
       "scontent.fbsyd4-1.fna.fbcdn.net",
       "flatmates-res.cloudinary.com",
+      "lh3.googleusercontent.com", // For Google profile pictures
+      "platform-lookaside.fbsbx.com", // For Facebook profile pictures (if you're using Facebook auth)
     ],
+  },
+
+  experimental: {
+    missingSuspenseWithCSRBailout: false,
   },
 };
 

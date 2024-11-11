@@ -10,6 +10,7 @@ import Navbar from "./_components/navbar";
 import { Providers } from "./providers";
 import Footer from "./_components/footer";
 import { SessionProvider } from "next-auth/react";
+import { Suspense } from "react";
 
 export default function RootLayout({
   children,
@@ -22,7 +23,9 @@ export default function RootLayout({
         <body>
           <Providers>
             <Navbar />
-            <TRPCReactProvider>{children}</TRPCReactProvider>
+            <TRPCReactProvider>
+              <Suspense fallback={<div>Loading...</div>}>{children}</Suspense>
+            </TRPCReactProvider>
             <Footer />
           </Providers>
         </body>

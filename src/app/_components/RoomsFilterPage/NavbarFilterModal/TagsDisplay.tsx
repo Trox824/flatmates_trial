@@ -22,18 +22,20 @@ export default function TagsDisplay({
     setSelectedTags(updatedTags);
 
     // Update URL params
-    const params = new URLSearchParams(searchParams.toString());
-    if (updatedTags.length > 0) {
-      params.set("tags", updatedTags.join(","));
-    } else {
-      params.delete("tags");
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(searchParams.toString());
+      if (updatedTags.length > 0) {
+        params.set("tags", updatedTags.join(","));
+      } else {
+        params.delete("tags");
+      }
+
+      // Update the URL without refreshing the page
+      router.push(`?${params.toString()}`, { scroll: false });
+
+      setSearchInput("");
+      setSuggestions([]);
     }
-
-    // Update the URL without refreshing the page
-    router.push(`?${params.toString()}`, { scroll: false });
-
-    setSearchInput("");
-    setSuggestions([]);
   };
 
   return (

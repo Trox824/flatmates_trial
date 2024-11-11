@@ -22,6 +22,7 @@ interface ListingGridProps {
   isShortlist?: boolean;
   filter: string;
   locationKeyword: string;
+  filters?: { [key: string]: string };
   onResultsUpdate?: (count: number) => void;
   onViewUpdate?: (view: number) => void;
 }
@@ -30,6 +31,7 @@ const ListingGrid = ({
   isShortlist = false,
   filter,
   locationKeyword,
+  filters = {},
   onResultsUpdate,
   onViewUpdate,
 }: ListingGridProps) => {
@@ -37,15 +39,36 @@ const ListingGrid = ({
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
-  const sentinelRef = useRef<HTMLDivElement | null>(null); // Ref for the sentinel
+  const observer = useRef<IntersectionObserver | null>(null);
+  const canLoadMore = useRef(true); // Prevent multiple page increments
+
+  // Function to build query parameters
+  const buildQueryParams = () => {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: "6",
+      sort: filter,
+      address: locationKeyword,
+    });
+
+    // Wrap URLSearchParams with window check
+    if (typeof window !== "undefined") {
+      Object.entries(filters).forEach(([key, value]) => {
+        params.append(key, value);
+      });
+    }
+
+    return params;
+  };
 
   const fetchListings = useCallback(async () => {
     if (loading || !hasMore) return;
 
     setLoading(true);
     try {
-      // Add locationKeyword to the query string
-      const endpoint = `/api/roomFilter?page=${page}&limit=6&sort=${filter}&address=${locationKeyword}`;
+      const queryParams = buildQueryParams();
+
+      const endpoint = `/api/roomFilter?${queryParams.toString()}`;
 
       const response = await fetch(endpoint);
       if (!response.ok) {
@@ -54,14 +77,15 @@ const ListingGrid = ({
 
       const data = await response.json();
       const newListings: Listing[] = data.listings;
+      const totalPages = data.totalPages;
 
-      if (newListings.length === 0) {
+      if (page >= totalPages || newListings.length === 0) {
         setHasMore(false);
-        return;
       }
 
-      setListings((prev) => [...prev, ...newListings]);
-      setPage((prev) => prev + 1);
+      setListings((prev) =>
+        page === 1 ? newListings : [...prev, ...newListings],
+      );
 
       // Update total results
       if (onResultsUpdate) {
@@ -70,61 +94,62 @@ const ListingGrid = ({
 
       // Update current view count
       if (onViewUpdate) {
-        onViewUpdate(listings.length + newListings.length);
+        onViewUpdate(
+          page === 1
+            ? newListings.length
+            : listings.length + newListings.length,
+        );
       }
     } catch (error) {
       console.error("Error fetching listings:", error);
       setHasMore(false);
     } finally {
       setLoading(false);
+      canLoadMore.current = true; // Allow loading more after fetch completes
     }
-  }, [
-    page,
-    loading,
-    hasMore,
-    isShortlist,
-    filter,
-    locationKeyword, // Include locationKeyword in dependency array
-    onResultsUpdate,
-    onViewUpdate,
-    listings.length,
-  ]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page]);
 
+  // Reset listings when filters or filter change
   useEffect(() => {
-    // Reset listings and pagination when filter changes
     setListings([]);
     setPage(1);
     setHasMore(true);
-  }, [filter]);
+  }, [filters, filter, locationKeyword]);
 
+  // Fetch listings when component mounts or when page changes
   useEffect(() => {
-    if (loading || !hasMore) return;
+    void fetchListings();
+  }, [fetchListings]);
 
-    const observer = new IntersectionObserver(
-      (entries: IntersectionObserverEntry[]) => {
-        if (entries.length > 0 && entries[0]?.isIntersecting && !loading) {
-          void fetchListings();
-        }
-      },
-      {
-        root: null,
-        rootMargin: "100px",
-        threshold: 0.1,
-      },
-    );
+  // Callback ref for the sentinel element
+  const sentinelRef = useCallback(
+    (node: HTMLDivElement | null) => {
+      if (observer.current) observer.current.disconnect();
 
-    const currentSentinel = sentinelRef.current;
-    if (currentSentinel) {
-      observer.observe(currentSentinel);
-    }
+      observer.current = new IntersectionObserver(
+        (entries) => {
+          if (
+            entries[0]?.isIntersecting &&
+            hasMore &&
+            !loading &&
+            canLoadMore.current
+          ) {
+            canLoadMore.current = false; // Prevent further calls until current load finishes
+            setPage((prev) => prev + 1);
+          }
+        },
+        {
+          root: null,
+          rootMargin: "100px",
+          threshold: 0.1,
+        },
+      );
 
-    return () => {
-      if (currentSentinel) {
-        observer.unobserve(currentSentinel);
-      }
-      observer.disconnect();
-    };
-  }, [loading, hasMore, fetchListings]);
+      if (node) observer.current.observe(node);
+    },
+    [hasMore, loading],
+  );
 
   return (
     <div className="w-[64%] py-2">
@@ -146,7 +171,12 @@ const ListingGrid = ({
       </div>
 
       {loading && <p className="mt-4 text-center">Loading...</p>}
-      {!hasMore && <p className="mt-4 text-center">No more listings.</p>}
+      {!hasMore && !loading && listings.length === 0 && (
+        <p className="mt-4 text-center">No listings found.</p>
+      )}
+      {!hasMore && listings.length > 0 && (
+        <p className="mt-4 text-center">No more listings.</p>
+      )}
     </div>
   );
 };

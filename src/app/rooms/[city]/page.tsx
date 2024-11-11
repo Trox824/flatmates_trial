@@ -1,8 +1,9 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { Breadcrumb } from "~/app/_components/RoomsFilterPage/breadcrumb";
 import { FilterHeader } from "~/app/_components/RoomsFilterPage/FilterHeader";
 import ListingGrid from "~/app/_components/RoomsFilterPage/ListingGrid";
+import { useSearchParams } from "next/navigation"; // Import useSearchParams
 
 interface PageProps {
   params: {
@@ -22,6 +23,20 @@ export default function RoomsPage({ params }: PageProps) {
     // Reset listings and pagination in ListingGrid via a key or prop
     // This can be handled inside ListingGrid component
   };
+
+  const searchParams = useSearchParams(); // Get the current search parameters
+
+  // Memoize filters to prevent unnecessary re-renders
+  const filters = useMemo(() => {
+    const params: { [key: string]: string } = {};
+    searchParams.forEach((value, key) => {
+      // Exclude page and limit from filters if you don't want them
+      if (key !== "page" && key !== "limit") {
+        params[key] = value;
+      }
+    });
+    return params;
+  }, [searchParams]);
 
   return (
     <div className="bg-[#f8f8f9]">
@@ -47,6 +62,7 @@ export default function RoomsPage({ params }: PageProps) {
           isShortlist={false}
           filter={filter}
           locationKeyword={decodedCity}
+          filters={filters} // Pass filters to ListingGrid
           onResultsUpdate={(count: number) => setTotalResults(count)}
           onViewUpdate={(view: number) => setCurrentView(view)}
         />

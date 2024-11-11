@@ -14,11 +14,12 @@ export default function FilterModal() {
   const modalRef = useRef<HTMLDivElement>(null);
   const searchParams = useSearchParams();
   const pathname = usePathname();
-
+  const [filterCount, setFilterCount] = useState(0);
   const [activeTab, setActiveTab] = useState<string>("Rooms");
   const [searchInput, setSearchInput] = useState<string>("");
   const [suggestions, setSuggestions] = useState<string[]>([]);
   const [selectedTags, setSelectedTags] = useState<string[]>(() => {
+    if (typeof window === "undefined") return [];
     const tagsParam = searchParams.get("tags");
     return tagsParam ? tagsParam.split(",") : [];
   });
@@ -60,7 +61,11 @@ export default function FilterModal() {
     <div className="sticky top-0 z-50 border-gray-300 bg-white">
       <div className="mx-auto max-w-6xl">
         <div className="relative">
-          <SearchBar onClick={() => setIsOpen(true)} />
+          <SearchBar
+            onClick={() => setIsOpen(true)}
+            filterCount={filterCount}
+          />
+
           {isOpen && (
             <div
               ref={modalRef}
@@ -137,7 +142,7 @@ export default function FilterModal() {
 
                 {/* Search Button */}
                 {isRooms ? (
-                  <AdvancedFilterModal />
+                  <AdvancedFilterModal onClose={() => setIsOpen(false)} />
                 ) : (
                   <Link
                     href={

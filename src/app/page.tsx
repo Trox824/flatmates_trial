@@ -8,7 +8,6 @@ export default function Home() {
     <main>
       <HeroSection />
       <ListingGrid isShortlist={false} />
-
     </main>
   );
 }

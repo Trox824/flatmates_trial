@@ -2,14 +2,35 @@ import React, { useState, useRef, useEffect } from "react";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { CalendarIcon } from "@heroicons/react/24/outline";
+import { useRouter, usePathname } from "next/navigation";
 
-const AdvancedFilterModal = () => {
-  // ... existing state and functions for Availability ...
+const AdvancedFilterModal = ({
+  onClose,
+  onFilterCountChange,
+}: {
+  onClose: () => void;
+  onFilterCountChange?: (count: number) => void;
+}) => {
+  // Existing states
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [selectedLength, setSelectedLength] = useState("");
   const [isOpen, setIsOpen] = useState(false);
   const listboxRef = useRef<HTMLDivElement>(null);
   const [activeTab, setActiveTab] = useState<string>("Any");
+
+  // New state variables for filter inputs
+  const [rentMin, setRentMin] = useState("");
+  const [rentMax, setRentMax] = useState("");
+  const [billsIncluded, setBillsIncluded] = useState(false);
+  const [selectedAccommodationTypes, setSelectedAccommodationTypes] = useState<
+    string[]
+  >([]);
+  const [selectedHouseholdFilters, setSelectedHouseholdFilters] = useState<
+    string[]
+  >([]);
+
+  const router = useRouter();
+  const pathname = usePathname();
 
   const stayLengths = [...Array(12)].map((_, index) => ({
     value: String(index + 1),
@@ -37,6 +58,110 @@ const AdvancedFilterModal = () => {
     };
   }, []);
 
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+
+      setRentMin(params.get("rentMin") || "");
+      setRentMax(params.get("rentMax") || "");
+      setBillsIncluded(params.get("billsIncluded") === "true");
+      setSelectedLength(params.get("stayLength") || "");
+      setSelectedAccommodationTypes(
+        params.get("accommodationTypes")?.split(",") || [],
+      );
+      setSelectedHouseholdFilters(params.get("households")?.split(",") || []);
+      // Set startDate if available
+      const dateParam = params.get("date");
+      if (dateParam) {
+        setStartDate(new Date(dateParam));
+      }
+      // Set activeTab if available
+      setActiveTab(params.get("bedroomAvailable") || "Any");
+
+      // Calculate initial filter count
+      const initialFilterCount = [
+        params.get("rentMin"),
+        params.get("rentMax"),
+        params.get("billsIncluded") === "true",
+        params.get("date"),
+        params.get("stayLength"),
+        ...(params.get("accommodationTypes")?.split(",") || []),
+        ...(params.get("households")?.split(",") || []),
+        params.get("bedroomAvailable") !== "Any"
+          ? params.get("bedroomAvailable")
+          : null,
+      ].filter(Boolean).length;
+
+      onFilterCountChange?.(initialFilterCount);
+    }
+  }, [onFilterCountChange]);
+
+  // Update the filter count calculation and notify parent component
+  useEffect(() => {
+    const filterCount = [
+      rentMin,
+      rentMax,
+      billsIncluded,
+      startDate,
+      selectedLength,
+      ...selectedAccommodationTypes,
+      ...selectedHouseholdFilters,
+      activeTab !== "Any" ? activeTab : null,
+    ].filter(Boolean).length;
+
+    onFilterCountChange?.(filterCount);
+  }, [
+    rentMin,
+    rentMax,
+    billsIncluded,
+    startDate,
+    selectedLength,
+    selectedAccommodationTypes,
+    selectedHouseholdFilters,
+    activeTab,
+    onFilterCountChange,
+  ]);
+
+  const handleUpdate = () => {
+    const filters: { [key: string]: string } = {};
+
+    if (rentMin) filters.rentMin = rentMin;
+    if (rentMax) filters.rentMax = rentMax;
+    if (billsIncluded) filters.billsIncluded = billsIncluded.toString();
+    if (startDate) filters.date = startDate.toISOString();
+    if (selectedLength) filters.stayLength = selectedLength;
+    if (selectedAccommodationTypes.length > 0)
+      filters.accommodationTypes = selectedAccommodationTypes.join(",");
+    if (selectedHouseholdFilters.length > 0)
+      filters.households = selectedHouseholdFilters.join(",");
+    if (activeTab !== "Any") filters.bedroomAvailable = activeTab;
+
+    // Remove filters that are not needed (e.g., empty strings)
+    Object.keys(filters).forEach(
+      (key) => filters[key] === "" && delete filters[key],
+    );
+
+    // Get the current pathname to extract the city
+    const currentPath = pathname;
+    const city = currentPath.split("/")[2] || "";
+
+    // Construct the new URL
+    let url = `/rooms/${city}`;
+    if (typeof window !== "undefined") {
+      const queryParams = new URLSearchParams(filters);
+      const queryString = queryParams.toString();
+      if (queryString) {
+        url += `?${queryString}`;
+      }
+    }
+
+    // Navigate to the new URL
+    router.push(url);
+
+    // Close the modal
+    onClose();
+  };
+
   return (
     <>
       {/* Rent Per Week */}
@@ -63,6 +188,8 @@ const AdvancedFilterModal = () => {
                 type="tel"
                 placeholder="Any"
                 className="w-[120px] rounded-md border border-gray-600 px-10 py-3"
+                value={rentMin}
+                onChange={(e) => setRentMin(e.target.value)}
               />
             </div>
           </div>
@@ -84,6 +211,8 @@ const AdvancedFilterModal = () => {
                 type="tel"
                 placeholder="Any"
                 className="w-[120px] rounded-md border border-gray-600 px-10 py-3"
+                value={rentMax}
+                onChange={(e) => setRentMax(e.target.value)}
               />
             </div>
           </div>
@@ -94,6 +223,8 @@ const AdvancedFilterModal = () => {
               id="bills"
               type="checkbox"
               className="h-4 w-4 rounded border-gray-300"
+              checked={billsIncluded}
+              onChange={(e) => setBillsIncluded(e.target.checked)}
             />
             <label htmlFor="bills" className="ml-2 text-sm text-gray-500">
               Bills included
@@ -207,69 +338,72 @@ const AdvancedFilterModal = () => {
         <div className="grid grid-cols-2 gap-y-3 pb-[1.5rem] pt-0">
           {/* Left Column */}
           <div className="space-y-3">
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                name="share_house"
-                className="h-4 w-4 rounded border-gray-300"
-              />
-              <span className="ml-2 text-sm text-[#2f3a4a]">Share house</span>
-            </label>
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                name="granny_flat"
-                className="h-4 w-4 rounded border-gray-300"
-              />
-              <span className="ml-2 text-sm text-[#2f3a4a]">Granny flat</span>
-            </label>
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                name="studio"
-                className="h-4 w-4 rounded border-gray-300"
-              />
-              <span className="ml-2 text-sm text-[#2f3a4a]">Studio</span>
-            </label>
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                name="student_accommodation"
-                className="h-4 w-4 rounded border-gray-300"
-              />
-              <span className="ml-2 text-sm text-[#2f3a4a]">
-                Student accommodation
-              </span>
-            </label>
+            {[
+              { name: "Share house", value: "share_house" },
+              { name: "Granny flat", value: "granny_flat" },
+              { name: "Studio", value: "studio" },
+              { name: "Student accommodation", value: "student_accommodation" },
+            ].map((option) => (
+              <label key={option.value} className="flex items-center">
+                <input
+                  type="checkbox"
+                  name={option.value}
+                  className="h-4 w-4 rounded border-gray-300"
+                  checked={selectedAccommodationTypes.includes(option.value)}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setSelectedAccommodationTypes([
+                        ...selectedAccommodationTypes,
+                        option.value,
+                      ]);
+                    } else {
+                      setSelectedAccommodationTypes(
+                        selectedAccommodationTypes.filter(
+                          (val) => val !== option.value,
+                        ),
+                      );
+                    }
+                  }}
+                />
+                <span className="ml-2 text-sm text-[#2f3a4a]">
+                  {option.name}
+                </span>
+              </label>
+            ))}
           </div>
           {/* Right Column */}
           <div className="space-y-3">
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                name="whole_property"
-                className="h-4 w-4 rounded border-gray-300"
-              />
-              <span className="ml-2 text-sm text-[#2f3a4a]">
-                Whole property
-              </span>
-            </label>
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                name="homestay"
-                className="h-4 w-4 rounded border-gray-300"
-              />
-              <span className="ml-2 text-sm text-[#2f3a4a]">Homestay</span>
-            </label>
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                name="one_bed_flats"
-                className="h-4 w-4 rounded border-gray-300"
-              />
-              <span className="ml-2 text-sm text-[#2f3a4a]">1 bed flats</span>
-            </label>
+            {[
+              { name: "Whole property", value: "whole_property" },
+              { name: "Homestay", value: "homestay" },
+              { name: "1 bed flats", value: "one_bed_flats" },
+            ].map((option) => (
+              <label key={option.value} className="flex items-center">
+                <input
+                  type="checkbox"
+                  name={option.value}
+                  className="h-4 w-4 rounded border-gray-300"
+                  checked={selectedAccommodationTypes.includes(option.value)}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setSelectedAccommodationTypes([
+                        ...selectedAccommodationTypes,
+                        option.value,
+                      ]);
+                    } else {
+                      setSelectedAccommodationTypes(
+                        selectedAccommodationTypes.filter(
+                          (val) => val !== option.value,
+                        ),
+                      );
+                    }
+                  }}
+                />
+                <span className="ml-2 text-sm text-[#2f3a4a]">
+                  {option.name}
+                </span>
+              </label>
+            ))}
           </div>
         </div>
       </div>
@@ -282,16 +416,36 @@ const AdvancedFilterModal = () => {
         <div className="grid grid-cols-2 gap-y-3 pb-[1.5rem] pt-0">
           {/* Left Column */}
           <div className="space-y-3">
-            <label className="flex items-center">
-              <input
-                type="checkbox"
-                name="women_only"
-                className="h-4 w-4 rounded border-gray-300"
-              />
-              <span className="ml-2 text-sm text-[#2f3a4a]">
-                Women only household
-              </span>
-            </label>
+            {[
+              { name: "Women only household", value: "women_only" },
+              // Add more household filters as needed
+            ].map((option) => (
+              <label key={option.value} className="flex items-center">
+                <input
+                  type="checkbox"
+                  name={option.value}
+                  className="h-4 w-4 rounded border-gray-300"
+                  checked={selectedHouseholdFilters.includes(option.value)}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setSelectedHouseholdFilters([
+                        ...selectedHouseholdFilters,
+                        option.value,
+                      ]);
+                    } else {
+                      setSelectedHouseholdFilters(
+                        selectedHouseholdFilters.filter(
+                          (val) => val !== option.value,
+                        ),
+                      );
+                    }
+                  }}
+                />
+                <span className="ml-2 text-sm text-[#2f3a4a]">
+                  {option.name}
+                </span>
+              </label>
+            ))}
           </div>
         </div>
       </div>
@@ -318,7 +472,10 @@ const AdvancedFilterModal = () => {
       </div>
 
       <div className="sticky bottom-0 flex justify-center border-t bg-white py-[1.5rem]">
-        <button className="w-[50%] rounded-md bg-[#006977] px-6 py-3 text-white">
+        <button
+          onClick={handleUpdate}
+          className="w-[50%] rounded-md bg-[#006977] px-6 py-3 text-white"
+        >
           Update
         </button>
       </div>
