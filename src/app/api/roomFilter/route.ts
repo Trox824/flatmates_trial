@@ -1,151 +1,207 @@
-import { NextResponse } from "next/dist/server/web/spec-extension/response";
-import { PrismaClient, Prisma } from "@prisma/client";
+import { type NextRequest, NextResponse } from "next/server";
+import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
-export async function GET(request: Request) {
-  const url = new URL(request.url);
-  const page = parseInt(url.searchParams.get("page") ?? "1");
-  const limit = parseInt(url.searchParams.get("limit") ?? "12");
-  const sort = url.searchParams.get("sort") ?? "address";
-  const addressKeyword = url.searchParams.get("address") ?? "";
+export async function GET(request: NextRequest) {
+  const url: URL = new URL(request.url);
+  const pageParam: string | null = url.searchParams.get("page");
+  const limitParam: string | null = url.searchParams.get("limit");
+  const sort: string = url.searchParams.get("sort") ?? "address";
+  const addressKeywordParam: string | null = url.searchParams.get("address");
+  const rentMinParam: string | null = url.searchParams.get("rentMin");
+  const rentMaxParam: string | null = url.searchParams.get("rentMax");
+  const billsIncludedParam: string | null =
+    url.searchParams.get("billsIncluded");
+  const availableFromParam: string | null = url.searchParams.get("date"); // Changed from "availableFrom" to "date"
+  const bedroomAvailableParam: string | null =
+    url.searchParams.get("bedroomAvailable");
+  const bathroomsMinParam: string | null = url.searchParams.get("bathroomsMin");
+  const flatmatesMaxParam: string | null = url.searchParams.get("flatmatesMax");
+  const accommodationTypesParam: string | null =
+    url.searchParams.get("accommodationTypes");
 
-  // Get filter parameters
-  const rentMin = url.searchParams.get("rentMin");
-  const rentMax = url.searchParams.get("rentMax");
-  const billsIncluded = url.searchParams.get("billsIncluded");
-  const date = url.searchParams.get("date");
-  const stayLength = url.searchParams.get("stayLength");
-  const accommodationTypes = url.searchParams.get("accommodationTypes");
-  const households = url.searchParams.get("households");
-  const bedroomAvailable = url.searchParams.get("bedroomAvailable");
+  // Parse and validate pagination parameters
+  const page: number = pageParam !== null ? parseInt(pageParam, 10) : 1;
+  const limit: number = limitParam !== null ? parseInt(limitParam, 10) : 12;
+  const offset: number = (page - 1) * limit;
 
-  // Add missing filter parameter declarations
-  const propertyFeatures = url.searchParams.get("propertyFeatures");
-  const bathroomsMin = url.searchParams.get("bathroomsMin");
-  const flatmatesMax = url.searchParams.get("flatmatesMax");
-  const inspectionRequired = url.searchParams.get("inspectionRequired");
+  // Trim and validate string parameters
+  const addressKeyword: string =
+    addressKeywordParam !== null ? addressKeywordParam.trim() : "";
 
-  const offset = (page - 1) * limit;
+  // Build conditions and parameters
+  const conditions: string[] = [];
+  const params: (string | number | boolean | Date)[] = [];
+
+  if (rentMinParam !== null) {
+    const rentMin: number = parseFloat(rentMinParam);
+    if (!isNaN(rentMin)) {
+      conditions.push(`r."weeklyRent" >= $${params.length + 1}`);
+      params.push(rentMin);
+    }
+  }
+
+  if (billsIncludedParam !== null) {
+    const billsIncluded: boolean = billsIncludedParam === "true";
+    conditions.push(`l."billsIncluded" = $${params.length + 1}`);
+    params.push(billsIncluded);
+  }
+
+  if (accommodationTypesParam !== null) {
+    const typesArray: string[] = accommodationTypesParam
+      .split(",")
+      .map((type) => type.trim());
+    if (typesArray.length > 0) {
+      const placeholders: string = typesArray
+        .map((_, index) => `$${params.length + index + 1}`)
+        .join(", ");
+      conditions.push(`l."heading" ILIKE ANY (ARRAY[${placeholders}])`);
+      params.push(...typesArray.map((type: string) => `%${type}%`));
+    }
+  }
+
+  if (availableFromParam !== null) {
+    const availableFromDate: Date = new Date(availableFromParam);
+    if (!isNaN(availableFromDate.getTime())) {
+      conditions.push(`l."availableFrom" <= $${params.length + 1}`);
+      params.push(availableFromDate);
+    }
+  }
+
+  if (rentMaxParam !== null) {
+    const rentMax: number = parseFloat(rentMaxParam);
+    if (!isNaN(rentMax)) {
+      conditions.push(`r."weeklyRent" <= $${params.length + 1}`);
+      params.push(rentMax);
+    }
+  }
+
+  if (bedroomAvailableParam !== null) {
+    const bedroomAvailable: number = parseInt(bedroomAvailableParam, 10);
+    if (!isNaN(bedroomAvailable)) {
+      conditions.push(`r."noBeds" >= $${params.length + 1}`);
+      params.push(bedroomAvailable);
+    }
+  }
+
+  if (bathroomsMinParam !== null) {
+    const bathroomsMin: number = parseInt(bathroomsMinParam, 10);
+    if (!isNaN(bathroomsMin)) {
+      conditions.push(`r."noBathrooms" >= $${params.length + 1}`);
+      params.push(bathroomsMin);
+    }
+  }
+
+  if (flatmatesMaxParam !== null) {
+    const flatmatesMax: number = parseInt(flatmatesMaxParam, 10);
+    if (!isNaN(flatmatesMax)) {
+      conditions.push(`r."noFlatmates" <= $${params.length + 1}`);
+      params.push(flatmatesMax);
+    }
+  }
+
+  if (addressKeyword !== "") {
+    conditions.push(`r."location" ILIKE $${params.length + 1}`);
+    params.push(`%${addressKeyword}%`);
+  }
+
+  let whereClause: string = "";
+  if (conditions.length > 0) {
+    whereClause = "WHERE " + conditions.join(" AND ");
+  }
+
+  // Determine the order clause
+  let orderClause: string = "";
+  switch (sort) {
+    case "newest":
+      orderClause = 'ORDER BY r."createdAt" DESC';
+      break;
+    case "rentHighToLow":
+      orderClause = 'ORDER BY r."weeklyRent" DESC';
+      break;
+    case "rentLowToHigh":
+      orderClause = 'ORDER BY r."weeklyRent" ASC';
+      break;
+    case "earliestAvailable":
+      orderClause = 'ORDER BY l."availableFrom" ASC';
+      break;
+    case "recentlyActive":
+      orderClause = 'ORDER BY r."updatedAt" DESC';
+      break;
+    case "location":
+    default:
+      orderClause = 'ORDER BY l."address" ASC';
+      break;
+  }
+
+  // Build the main query without parameterizing limit and offset
+  const mainQuery: string = `
+    SELECT r."id", r."weeklyRent", r."noBeds", r."noBathrooms", r."noFlatmates", r."location", r."createdAt", r."updatedAt", l."availableFrom", l."billsIncluded", l."address", r."images", l."heading", l."secondaryContent"
+    FROM "Room" r
+    JOIN "Listing" l ON r.id = l.id
+    ${whereClause}
+    ${orderClause}
+    LIMIT ${limit} OFFSET ${offset}
+  `;
+
+  // Clone params for count query without limit and offset
+  const countParams: (string | number | boolean | Date)[] = [...params];
+
+  const countQuery: string = `
+    SELECT COUNT(DISTINCT r.id) AS count
+    FROM "Room" r
+    JOIN "Listing" l ON r.id = l.id
+    ${whereClause}
+  `;
 
   try {
-    // Define orderBy based on schema fields
-    let orderBy: Prisma.ListingOrderByWithRelationInput = { address: "asc" };
+    // Add logging to debug the queries
+    console.log("Main Query Parameters:", params);
+    console.log("Count Query Parameters:", countParams);
 
-    switch (sort) {
-      case "newest":
-        orderBy = { createdAt: "desc" };
-        break;
-      case "rentHighToLow":
-        orderBy = { weeklyRent: "desc" }; // Using weeklyRent from schema
-        break;
-      case "rentLowToHigh":
-        orderBy = { weeklyRent: "asc" }; // Using weeklyRent from schema
-        break;
-      case "earliestAvailable":
-        orderBy = { availableFrom: "asc" };
-        break;
-      case "recentlyActive":
-        orderBy = { updatedAt: "desc" };
-        break;
-    }
+    // Fetch rooms with pagination, filters, and include listing data
+    const rooms: Array<{
+      id: string;
+      weeklyRent: number;
+      noBeds: number;
+      noBathrooms: number;
+      noFlatmates: number;
+      location: string;
+      createdAt: Date;
+      updatedAt: Date;
+      availableFrom: Date;
+      billsIncluded: boolean;
+      address: string;
+      images: string[];
+      heading: string;
+      secondaryContent: string;
+    }> = await prisma.$queryRawUnsafe(mainQuery, ...params);
+    console.log("Number of rooms returned:", rooms.length);
 
-    // Build the filtering condition based on schema
-    const filters: Prisma.ListingWhereInput = {
-      // Address filter
-      address: addressKeyword
-        ? {
-            contains: addressKeyword,
-            mode: "insensitive",
-          }
-        : undefined,
-
-      // Available from date filter
-      availableFrom: date
-        ? {
-            gte: new Date(date),
-          }
-        : undefined,
-
-      // Bills included filter
-      billsIncluded: billsIncluded ? billsIncluded === "true" : undefined,
-
-      // Weekly rent filter (using weeklyRent from schema)
-      weeklyRent: {
-        ...(rentMin && { gte: parseInt(rentMin) }),
-        ...(rentMax && { lte: parseInt(rentMax) }),
-      },
-
-      // Accommodation type filter
-      type: accommodationTypes
-        ? {
-            in: accommodationTypes.split(","),
-          }
-        : undefined,
-
-      // Household/accepting tags filter
-      // Bedroom availability filter
-      noBeds: bedroomAvailable
-        ? {
-            gte: parseInt(bedroomAvailable),
-          }
-        : undefined,
-
-      // Additional filters you might want to add
-      propertyFeatures: propertyFeatures
-        ? {
-            hasSome: propertyFeatures.split(","),
-          }
-        : undefined,
-
-      // Number of bathrooms filter
-      noBathrooms: bathroomsMin
-        ? {
-            gte: parseInt(bathroomsMin),
-          }
-        : undefined,
-
-      // Number of flatmates filter
-      noFlatmates: flatmatesMax
-        ? {
-            lte: parseInt(flatmatesMax),
-          }
-        : undefined,
-
-      // Inspection availability filter
-      inspectAvailable: inspectionRequired
-        ? inspectionRequired === "true"
-        : undefined,
-    };
-
-    // Remove undefined filters
-    Object.keys(filters).forEach(
-      (key) =>
-        filters[key as keyof Prisma.ListingWhereInput] === undefined &&
-        delete filters[key as keyof Prisma.ListingWhereInput],
+    // Get total count of filtered rooms
+    const totalResultsArray: { count: bigint }[] = await prisma.$queryRawUnsafe(
+      countQuery,
+      ...countParams,
     );
+    console.log("Raw count result:", totalResultsArray[0]);
 
-    // Fetch listings with pagination and filters
-    const listings = await prisma.listing.findMany({
-      where: filters,
-      orderBy: orderBy,
-      skip: offset,
-      take: limit,
-    });
+    const totalResultsBigInt: bigint = totalResultsArray[0]?.count ?? BigInt(0);
 
-    // Get total count of filtered listings
-    const totalResults = await prisma.listing.count({
-      where: filters,
-    });
+    // Convert BigInt to Number
+    const totalResults: number = Number(totalResultsBigInt);
 
+    // Calculate total pages
+    const totalPages: number = Math.ceil(totalResults / limit);
+    console.log(mainQuery);
     return NextResponse.json({
-      listings,
+      listings: rooms,
       page,
       totalResults,
-      totalPages: Math.ceil(totalResults / limit),
+      totalPages,
     });
   } catch (error) {
-    console.error("Error fetching listings:", error);
+    console.error("Error fetching rooms:", error);
     return NextResponse.error();
   }
 }

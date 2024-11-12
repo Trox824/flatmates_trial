@@ -1,4 +1,4 @@
-import { type FC, useState, useEffect } from "react";
+import { FC, useState, useEffect } from "react";
 import Image from "next/image";
 import housemate from "../../../../public/images/housemate.png";
 import Link from "next/link";
@@ -6,29 +6,25 @@ import { useSession } from "next-auth/react";
 
 interface BaseListingProps {
   id: string;
-  type: "person" | "room";
+  type: "room";
   heading: string;
-  price: number;
-  isShortlist?: boolean;
+  weeklyRent: number;
   billsIncluded?: boolean;
   images?: string[];
-}
-
-export interface PersonListingProps extends BaseListingProps {
-  type: "person";
-  description?: string;
-  subheading?: string;
-  availableFrom?: Date;
-}
-
-export interface RoomListingProps extends BaseListingProps {
-  type: "room";
+  noBeds: number;
+  noBathrooms: number;
+  noFlatmates: number;
   address?: string;
-  secondaryContent?: string;
   availableFrom?: Date;
+  location?: string;
+  createdAt?: Date;
+  lastActive?: Date;
 }
 
-type ListingCardProps = PersonListingProps | RoomListingProps;
+interface ListingCardProps extends BaseListingProps {
+  isShortlist?: boolean;
+  secondaryContent?: string;
+}
 
 interface FavoritesResponse {
   favorites: Array<{ id: string }>;
@@ -36,9 +32,7 @@ interface FavoritesResponse {
 
 const ListingCard: FC<ListingCardProps> = (props) => {
   const { data: session } = useSession();
-  const [isFavorite, setIsFavorite] = useState<boolean>(
-    props.isShortlist ?? false,
-  );
+  const [isFavorite, setIsFavorite] = useState<boolean>(false);
   const [loading, setLoading] = useState(false);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
@@ -84,7 +78,7 @@ const ListingCard: FC<ListingCardProps> = (props) => {
 
       void fetchFavorites();
     }
-  }, [session, props.id, props.isShortlist, props.type]);
+  }, [session, props.id]);
 
   // Function to toggle favorite status
   const toggleFavorite = async () => {
@@ -256,14 +250,10 @@ const ListingCard: FC<ListingCardProps> = (props) => {
         <div className="px-6 py-4">
           <div className="mb-2 flex items-start justify-between">
             <h3 className="text-[1.25rem] font-semibold">
-              {props.type === "room" ? (
-                <>
-                  ${props.price}/week
-                  {props.billsIncluded && <span className=""> inc. bills</span>}
-                </>
-              ) : (
-                props.heading
-              )}
+              {props.weeklyRent
+                ? `$${props.weeklyRent}/week`
+                : "Price not available"}
+              {props.billsIncluded && <span className=""> inc. bills</span>}
             </h3>
             <button className="rounded border border-gray-700 px-3 text-xs hover:bg-gray-50">
               Free to message
@@ -271,32 +261,10 @@ const ListingCard: FC<ListingCardProps> = (props) => {
           </div>
 
           <div className="flex items-center gap-2 text-[1rem] text-gray-600">
-            {props.type === "room"
-              ? props.address && <span>{props.address}</span>
-              : props.subheading && (
-                  <div className="flex items-center gap-2 text-[1rem] font-thin text-gray-600">
-                    {props.subheading.split("•").map((item, index, _array) => (
-                      <span key={`subheading-${index}`}>
-                        <span className="p-1">{item.trim()}</span>
-                        {index < _array.length - 1 && (
-                          <svg
-                            className="inline-block h-1 w-1 text-gray-500"
-                            viewBox="0 0 6 6"
-                          >
-                            <circle cx="3" cy="3" r="3" fill="currentColor" />
-                          </svg>
-                        )}
-                      </span>
-                    ))}
-                  </div>
-                )}
+            {props.address && <span>{props.address}</span>}
           </div>
 
-          {props.type === "person" ? (
-            <p className="line-clamp-2 py-1 text-sm text-gray-600">
-              {props.description}
-            </p>
-          ) : (
+          {props.secondaryContent && (
             <p className="line-clamp-2 py-1 text-sm text-gray-600">
               {props.secondaryContent && (
                 <div className="flex items-center gap-2">

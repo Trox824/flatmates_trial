@@ -5,17 +5,19 @@ import ListingCard from "./ListingCard";
 
 interface Listing {
   id: string;
-  type: "person" | "room";
+  type: "room";
   heading: string;
-  price: number;
+  weeklyRent: number;
   address?: string;
-  secondaryContent?: string;
-  description?: string;
-  subheading?: string;
   availableFrom?: Date;
   location?: string;
   createdAt?: Date;
   lastActive?: Date;
+  noBeds: number;
+  noBathrooms: number;
+  noFlatmates: number;
+  billsIncluded?: boolean;
+  images?: string[];
 }
 
 interface ListingGridProps {
@@ -51,12 +53,9 @@ const ListingGrid = ({
       address: locationKeyword,
     });
 
-    // Wrap URLSearchParams with window check
-    if (typeof window !== "undefined") {
-      Object.entries(filters).forEach(([key, value]) => {
-        params.append(key, value);
-      });
-    }
+    Object.entries(filters).forEach(([key, value]) => {
+      params.append(key, value);
+    });
 
     return params;
   };
@@ -68,7 +67,9 @@ const ListingGrid = ({
     try {
       const queryParams = buildQueryParams();
 
-      const endpoint = `/api/roomFilter?${queryParams.toString()}`;
+      const endpoint = isShortlist
+        ? "/api/favorites/index"
+        : `/api/roomFilter?${queryParams.toString()}`;
 
       const response = await fetch(endpoint);
       if (!response.ok) {
@@ -76,11 +77,15 @@ const ListingGrid = ({
       }
 
       const data = await response.json();
-      const newListings: Listing[] = data.listings;
+      const newListings: Listing[] = isShortlist
+        ? data.favorites
+        : data.listings;
       const totalPages = data.totalPages;
 
       if (page >= totalPages || newListings.length === 0) {
         setHasMore(false);
+      } else {
+        setPage((prev) => prev + 1); // Increment page after successful fetch
       }
 
       setListings((prev) =>
@@ -105,10 +110,20 @@ const ListingGrid = ({
       setHasMore(false);
     } finally {
       setLoading(false);
-      canLoadMore.current = true; // Allow loading more after fetch completes
+      canLoadMore.current = true; // Re-enable loading more after fetch completes
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page]);
+  }, [
+    page,
+    loading,
+    hasMore,
+    isShortlist,
+    filter,
+    locationKeyword,
+    filters,
+    listings.length,
+    onResultsUpdate,
+    onViewUpdate,
+  ]);
 
   // Reset listings when filters or filter change
   useEffect(() => {
@@ -119,8 +134,11 @@ const ListingGrid = ({
 
   // Fetch listings when component mounts or when page changes
   useEffect(() => {
-    void fetchListings();
-  }, [fetchListings]);
+    // Initial fetch only
+    if (page === 1) {
+      void fetchListings();
+    }
+  }, [page, fetchListings]);
 
   // Callback ref for the sentinel element
   const sentinelRef = useCallback(
@@ -135,8 +153,8 @@ const ListingGrid = ({
             !loading &&
             canLoadMore.current
           ) {
-            canLoadMore.current = false; // Prevent further calls until current load finishes
-            setPage((prev) => prev + 1);
+            canLoadMore.current = false; // Prevent multiple triggers
+            void fetchListings(); // Directly call fetchListings instead of updating page
           }
         },
         {
@@ -148,7 +166,7 @@ const ListingGrid = ({
 
       if (node) observer.current.observe(node);
     },
-    [hasMore, loading],
+    [hasMore, loading, fetchListings], // Add fetchListings to dependencies
   );
 
   return (

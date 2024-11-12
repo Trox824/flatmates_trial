@@ -255,6 +255,7 @@ const AdvancedFilterModal = ({
                 className=""
                 minDate={new Date()}
                 id="date_available"
+                dateFormat="dd/MM/yyyy"
               />
               <button className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400">
                 <CalendarIcon className="h-5 w-5" />
