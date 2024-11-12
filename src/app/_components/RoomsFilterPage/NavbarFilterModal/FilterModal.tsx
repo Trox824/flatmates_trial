@@ -61,10 +61,7 @@ export default function FilterModal() {
     <div className="sticky top-0 z-50 border-gray-300 bg-white">
       <div className="mx-auto max-w-6xl">
         <div className="relative">
-          <SearchBar
-            onClick={() => setIsOpen(true)}
-            filterCount={filterCount}
-          />
+          <SearchBar onClick={() => setIsOpen(true)} />
 
           {isOpen && (
             <div
